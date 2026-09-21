@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>遗语 · Lingua</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    min-height: 100vh;
+    background: #04060c;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, #1a1408 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, #08162e 0%, transparent 50%),
+      repeating-linear-gradient(0deg, transparent, transparent 2px, #ffffff02 2px, #ffffff02 4px);
+    color: #c8d4e0;
+    font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    overflow-x: hidden;
+  }
+
+  /* ---------- 标题 ---------- */
+  .title-block {
+    text-align: center;
+    margin-bottom: 80px;
+    animation: fadeDown 1.2s ease-out;
+  }
+
+  .title-cn {
+    font-size: clamp(48px, 8vw, 82px);
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    color: #e8e0d0;
+    font-weight: normal;
+    text-shadow:
+      0 0 40px #c8a24a33,
+      0 0 80px #5a9ee822;
+  }
+
+  .title-en {
+    margin-top: 20px;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    letter-spacing: 0.8em;
+    text-indent: 0.8em;
+    color: #5a6a85;
+  }
+
+  .title-sub {
+    margin-top: 32px;
+    font-size: 14px;
+    letter-spacing: 0.35em;
+    text-indent: 0.35em;
+    color: #7a8a9e;
+    line-height: 2;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- 入口 ---------- */
+  .entries {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 400px));
+    gap: 32px;
+    width: 100%;
+    max-width: 900px;
+    animation: fadeUp 1.4s ease-out 0.3s backwards;
+  }
+
+  @media (max-width: 760px) {
+    .entries { grid-template-columns: 1fr; gap: 24px; }
+    .title-block { margin-bottom: 50px; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .entry {
+    display: block;
+    position: relative;
+    padding: 40px 32px 36px;
+    background: linear-gradient(180deg, #0a1018, #060810);
+    border: 1px solid #1a2438;
+    border-radius: 14px;
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition: all .4s cubic-bezier(.2, .8, .2, 1);
+    cursor: pointer;
+  }
+
+  .entry::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity .4s;
+    pointer-events: none;
+  }
+
+  .entry.sela::before {
+    background: radial-gradient(ellipse at 50% 0%, #c8a24a15 0%, transparent 70%);
+  }
+
+  .entry.devil::before {
+    background: radial-gradient(ellipse at 50% 0%, #5a9ee815 0%, transparent 70%);
+  }
+
+  .entry:hover::before { opacity: 1; }
+
+  .entry.sela:hover {
+    border-color: #c8a24a88;
+    transform: translateY(-4px);
+    box-shadow:
+      0 20px 60px #00000080,
+      0 0 40px #c8a24a22,
+      inset 0 1px 0 #c8a24a33;
+  }
+
+  .entry.devil:hover {
+    border-color: #5a9ee888;
+    transform: translateY(-4px);
+    box-shadow:
+      0 20px 60px #00000080,
+      0 0 40px #5a9ee822,
+      inset 0 1px 0 #5a9ee833;
+  }
+
+  /* 图标 */
+  .entry-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 28px;
+    transition: all .4s;
+  }
+
+  .entry.sela .entry-icon { color: #c8a24a; }
+  .entry.devil .entry-icon { color: #5a9ee8; }
+
+  .entry.sela:hover .entry-icon {
+    filter: drop-shadow(0 0 16px #c8a24aaa);
+    transform: scale(1.06);
+  }
+
+  .entry.devil:hover .entry-icon {
+    filter: drop-shadow(0 0 16px #5a9ee8aa);
+    transform: scale(1.06);
+  }
+
+  /* 标题 */
+  .entry-title {
+    font-size: 22px;
+    letter-spacing: 0.2em;
+    color: #e8e0d0;
+    margin-bottom: 8px;
+    font-weight: normal;
+  }
+
+  .entry.sela .entry-title { transition: color .4s; }
+  .entry.devil .entry-title { transition: color .4s; }
+
+  .entry.sela:hover .entry-title { color: #e8c876; }
+  .entry.devil:hover .entry-title { color: #a8d0f0; }
+
+  .entry-en {
+    font-family: "Courier New", monospace;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: #4a5a75;
+    margin-bottom: 20px;
+  }
+
+  .entry.sela .entry-en { color: #8a7040; }
+  .entry.devil .entry-en { color: #3a6898; }
+
+  /* 描述 */
+  .entry-desc {
+    font-size: 13px;
+    line-height: 2;
+    color: #7a8a9e;
+    margin-bottom: 28px;
+    min-height: 78px;
+  }
+
+  /* 标签 */
+  .entry-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-top: 22px;
+    border-top: 1px solid #141c2c;
+  }
+
+  .tag {
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid;
+    text-transform: uppercase;
+  }
+
+  .entry.sela .tag {
+    color: #a8874a;
+    border-color: #3a2f1a;
+  }
+
+  .entry.devil .tag {
+    color: #6a9ec8;
+    border-color: #1e3050;
+  }
+
+  /* 箭头 */
+  .entry-arrow {
+    position: absolute;
+    top: 40px;
+    right: 32px;
+    font-size: 18px;
+    color: #2a3a55;
+    transition: all .4s;
+    font-family: "Courier New", monospace;
+  }
+
+  .entry.sela:hover .entry-arrow {
+    color: #c8a24a;
+    transform: translateX(4px);
+  }
+
+  .entry.devil:hover .entry-arrow {
+    color: #5a9ee8;
+    transform: translateX(4px);
+  }
+
+  /* ---------- 页脚 ---------- */
+  .footer {
+    margin-top: 80px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    color: #3a4a65;
+    line-height: 2.2;
+  }
+
+  .footer .divider {
+    display: inline-block;
+    width: 40px;
+    height: 1px;
+    background: #1a2438;
+    margin: 0 16px;
+    vertical-align: middle;
+  }
+
+  .footer .lang {
+    font-family: "Courier New", monospace;
+    color: #4a5a75;
+    letter-spacing: 0.5em;
+  }
+
+  /* 塞拉卡片的细微呼吸 */
+  .entry.sela .entry-icon {
+    animation: breatheGold 4s ease-in-out infinite;
+  }
+
+  @keyframes breatheGold {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; filter: drop-shadow(0 0 8px #c8a24a44); }
+  }
+
+  /* 反常频段的扫描线 */
+  .entry.devil::after {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(180deg, transparent, #5a9ee810, transparent);
+    pointer-events: none;
+    animation: scan 6s linear infinite;
+  }
+
+  @keyframes scan {
+    0% { top: -100%; }
+    100% { top: 200%; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="title-block">
+    <h1 class="title-cn">遗语</h1>
+    <div class="title-en">LINGUA</div>
+    <div class="title-sub">
+      两段等待被破译的语言<br>
+      两个不该被听见的声音
+    </div>
+  </div>
+
+  <div class="entries">
+
+    <!-- 塞拉 -->
+    <a class="entry sela" href="WIG/Sela.html">
+      <div class="entry-arrow">→</div>
+
+      <svg class="entry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 21 V9 Q7 4 12 4 Q17 4 17 9 V21 Z" />
+        <line x1="12" y1="9" x2="12" y2="17" />
+        <line x1="9.5" y1="12.5" x2="14.5" y2="12.5" />
+      </svg>
+
+      <div class="entry-title">遗语 · 塞拉</div>
+      <div class="entry-en">SELA</div>
+
+      <div class="entry-desc">
+        洞窟深处的石碑上，刻着一种消失的语言。<br>
+        水、光、神，还有比末日更远的东西。<br>
+        你一句句地读，直到最后，读到了自己的名字。
+      </div>
+
+      <div class="entry-tags">
+        <span class="tag">文字解谜</span>
+        <span class="tag">已完结</span>
+      </div>
+    </a>
+
+    <!-- 反常频段 -->
+    <a class="entry devil" href="WIG/Devil.html">
+      <div class="entry-arrow">→</div>
+
+      <svg class="entry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="10.5" x2="3" y2="13.5" />
+        <line x1="6.5" y1="8" x2="6.5" y2="16" />
+        <line x1="10" y1="4.5" x2="10" y2="19.5" />
+        <line x1="13.5" y1="7" x2="13.5" y2="17" />
+        <line x1="17" y1="5.5" x2="17" y2="18.5" />
+        <line x1="20.5" y1="9.5" x2="20.5" y2="14.5" />
+      </svg>
+
+      <div class="entry-title">遗语 · 反常频段</div>
+      <div class="entry-en">ANOMALOUS&nbsp;FREQ.</div>
+
+      <div class="entry-desc">
+        凌晨两点十七分，收音机跳到了 88.8。<br>
+        里面有一种语言，黏着、扭曲，后缀像鳞片一样层层叠叠。<br>
+        那不是人类的语言。但它正在对你说话。
+      </div>
+
+      <div class="entry-tags">
+        <span class="tag">声音解谜</span>
+        <span class="tag">连载中</span>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="footer">
+    <span class="lang">LINGUA</span>
+    <span class="divider"></span>
+    <span>两章 · 两个世界</span>
+    <span class="divider"></span>
+    <span class="lang">MMXXVI</span>
+  </div>
+
+</body>
+</html>
