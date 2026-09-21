@@ -672,7 +672,38 @@ const LEVELS = [
     accepts: ["说", "声音", "说话", "语言", "发声", "喊", "叫", "交流", "对话", "人声", "谈话", "言语"],
     learned: { type: "root", word: "kal", meaning: "说 / 声音" },
     reveal: "你回放了三遍。每一次，都是同一个词。\n\n它在说。或者，它就是「说」本身。"
-  }
+  },
+ {
+  key: "K02",
+  label: 2,
+  title: "影子",
+  scene: "你调回那个频率。信号还在。\n\n这一次，声音没有停在原地。\n\nkal 后面，总是跟着另一个音节。很短，像是它的影子。",
+  audios: [
+    {
+      id: "main",
+      label: "▶ 播放信号",
+      file: "audio/02-kal-esh.mp3",
+      note: "两个音节。第一个你认识，第二个没见过。"
+    },
+    {
+      id: "conversation",
+      label: "▶ 再听一段",
+      file: "audio/02-conversation.mp3",
+      note: "又是那段对话。这一次，你听见 kal-esh 混在里面。"
+    }
+  ],
+  blocks: [
+    { text: "kal", type: "root", audio: "audio/02-kal-single.mp3" },
+    { text: "esh", type: "suffix", audio: "audio/02-esh-single.mp3" }
+  ],
+  question: "kal-esh 是什么意思？",
+  accepts: [
+    "说话者", "说话的人", "说的人", "发声者", "讲话的人",
+    "发言者", "说者", "谈话者", "讲话者", "说的那个人"
+  ],
+  learned: { type: "suffix", word: "esh", meaning: "主语" },
+  reveal: "词根是「说」。后面那一段，很短，像影子一样跟着它。\n\n每次它出现，都在标记——做这个动作的是谁。\n\nkal-esh：说的人。说话者。"
+   }
 ];
 
 state.levels = LEVELS;
