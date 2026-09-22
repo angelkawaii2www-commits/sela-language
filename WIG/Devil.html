@@ -1,0 +1,5224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>遗语 · 反常频段</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: #04070f;
+    background-image:
+      radial-gradient(ellipse at 50% -20%, #0a1838 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 2px, #ffffff03 2px, #ffffff03 4px);
+    color: #c8d4e0;
+    font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+    padding: 24px 16px 60px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app { width: min(1180px, 100%); }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #122444;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    font-size: 20px;
+    letter-spacing: 0.4em;
+    color: #5a9ee8;
+    text-shadow: 0 0 24px #5a9ee866;
+  }
+
+  .freq {
+    font-family: "Courier New", monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: #4a5a75;
+    flex: 1;
+    text-align: center;
+  }
+
+  .freq .live {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #5a9ee8;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+    animation: pulse 1.6s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.35; box-shadow: 0 0 0 #5a9ee800; }
+    50% { opacity: 1; box-shadow: 0 0 12px #5a9ee8aa; }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .progress {
+    font-size: 12px;
+    color: #7a8a9e;
+    letter-spacing: 0.15em;
+  }
+
+  .btn-restart {
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #1e3050;
+    color: #7a8a9e;
+    transition: all .18s;
+  }
+
+  .btn-restart:hover {
+    border-color: #5a9ee8;
+    color: #5a9ee8;
+  }
+
+  /* ---------- 布局 ---------- */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 18px;
+    align-items: start;
+  }
+
+  @media (max-width: 880px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: linear-gradient(180deg, #08122a, #050a18);
+    border: 1px solid #122444;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 100px;
+  }
+
+  .panel h2 {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: #6a7a95;
+    font-weight: normal;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #0e1c34;
+  }
+
+  .left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ---------- 现场 ---------- */
+  #clueTitle {
+    font-size: 18px;
+    color: #a8d0f0;
+    margin-bottom: 12px;
+    letter-spacing: 0.1em;
+  }
+
+  #clueText {
+    font-size: 14px;
+    line-height: 2;
+    color: #8a9ab5;
+    white-space: pre-line;
+  }
+
+  /* ---------- 频谱区 ---------- */
+  .spectrum-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+
+  .audio-btn {
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #2a4878;
+    color: #8ab8e8;
+    transition: all .18s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .audio-btn:hover {
+    border-color: #5a9ee8;
+    color: #a8d0f0;
+    background: #0a1830;
+  }
+
+  .audio-btn.playing {
+    border-color: #5a9ee8;
+    color: #a8d0f0;
+    background: #0a1830;
+    box-shadow: 0 0 20px #5a9ee833;
+  }
+
+  .audio-btn .icon {
+    font-size: 11px;
+    opacity: 0.8;
+  }
+
+  .audio-btn.hint {
+    border-color: #1e3050;
+    color: #7a8a9e;
+  }
+
+  .audio-btn.hint:hover {
+    border-color: #5a9ee8;
+    color: #a8d0f0;
+  }
+
+  .audio-note {
+    margin-top: -12px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: #5a6a85;
+    letter-spacing: 0.1em;
+    font-style: italic;
+    padding-left: 4px;
+  }
+
+  /* ---------- 频谱块 ---------- */
+  .spectrum {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 22px 16px;
+    background: #030610;
+    border: 1px solid #0e1c34;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    min-height: 130px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .spec-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #08122a;
+    border: 1px solid #1a3050;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .22s;
+    min-width: 90px;
+  }
+
+  .spec-block:hover {
+    border-color: #5a9ee8;
+    background: #0c1c3a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px #5a9ee822;
+  }
+
+  .spec-block.playing {
+    border-color: #5a9ee8;
+    box-shadow: 0 0 26px #5a9ee855;
+  }
+
+  .spec-wave {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 28px;
+    padding: 0 4px;
+  }
+
+  .spec-wave span {
+    display: block;
+    width: 3px;
+    background: #c8a24a;
+    border-radius: 1px;
+    opacity: 0.75;
+  }
+
+  .spec-block.root .spec-wave span {
+    background: #c8a24a;
+  }
+
+  .spec-block.suffix .spec-wave span {
+    background: #5ab8d8;
+    opacity: 0.7;
+  }
+
+  .spec-text {
+    font-family: "Courier New", monospace;
+    font-size: 16px;
+    letter-spacing: 0.15em;
+    color: #e8c876;
+    font-weight: bold;
+  }
+
+  .spec-block.suffix .spec-text {
+    color: #7ac8e8;
+    font-size: 15px;
+  }
+
+  .spec-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: #5a6a85;
+    text-transform: uppercase;
+  }
+
+  .spec-block.root .spec-label { color: #c8a24a99; }
+  .spec-block.suffix .spec-label { color: #5ab8d899; }
+
+  /* ---------- 问题区 ---------- */
+  .question-row {
+    margin-top: 18px;
+  }
+
+  .question-label {
+    font-size: 14px;
+    color: #c8d4e0;
+    margin-bottom: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: #04091a;
+    border: 1px solid #1e3050;
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: #e8c876;
+    font-family: inherit;
+    font-size: 16px;
+    outline: none;
+    transition: border-color .2s;
+    min-width: 0;
+  }
+
+  input[type="text"]:focus { border-color: #5a9ee8; }
+  input[type="text"]::placeholder { color: #3a4a65; }
+
+  .btn {
+    font-family: inherit;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    padding: 12px 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all .18s;
+    white-space: nowrap;
+  }
+
+  .btn.primary {
+    background: #5a9ee8;
+    color: #04091a;
+    font-weight: bold;
+  }
+
+  .btn.primary:hover { background: #7ab8f8; }
+
+  .feedback {
+    min-height: 22px;
+    margin-top: 12px;
+    font-size: 14px;
+    color: #e8a878;
+    line-height: 1.7;
+  }
+
+  .feedback.good { color: #6fbf73; }
+
+  /* ---------- 记录本 ---------- */
+  .lex-section {
+    margin-bottom: 24px;
+  }
+
+  .lex-section:last-child { margin-bottom: 0; }
+
+  .lex-title {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: #7a8a9e;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #0e1c34;
+  }
+
+  .lex-title.root { color: #c8a24aaa; }
+  .lex-title.suffix { color: #5ab8d8aa; }
+
+  .lex-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .lex-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: #04091a;
+    border-radius: 5px;
+    border-left: 2px solid #c8a24a55;
+    animation: fadeIn .4s;
+  }
+
+  .lex-item.suffix {
+    border-left-color: #5ab8d855;
+  }
+
+  .lex-item .sela {
+    font-family: "Courier New", monospace;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    color: #e8c876;
+    font-weight: bold;
+  }
+
+  .lex-item.suffix .sela {
+    color: #7ac8e8;
+    font-size: 13px;
+  }
+
+  .lex-item .cn {
+    font-size: 13px;
+    color: #8a9cb5;
+  }
+
+  .empty {
+    color: #3a4a65;
+    font-size: 13px;
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- 弹层 ---------- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: #000000e0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    z-index: 99;
+    animation: fadeIn .3s;
+  }
+
+  .reveal-box {
+    max-width: 500px;
+    background: linear-gradient(180deg, #0a1830, #050a18);
+    border: 1px solid #5a9ee855;
+    border-radius: 12px;
+    padding: 34px 30px;
+    text-align: center;
+    box-shadow: 0 0 60px #5a9ee822;
+  }
+
+  .reveal-box p {
+    font-size: 16px;
+    line-height: 2;
+    color: #c8d4e0;
+    margin-bottom: 24px;
+    white-space: pre-line;
+  }
+
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000000e0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    z-index: 100;
+  }
+
+  .confirm-box {
+    max-width: 380px;
+    background: linear-gradient(180deg, #0a1830, #050a18);
+    border: 1px solid #5a9ee855;
+    border-radius: 12px;
+    padding: 30px 28px;
+    text-align: center;
+  }
+
+  .confirm-box p {
+    font-size: 15px;
+    line-height: 1.9;
+    color: #c8d4e0;
+    margin-bottom: 24px;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .shake { animation: shake .35s; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .ending {
+    max-width: 620px;
+    margin: 100px auto;
+    text-align: center;
+    animation: fadeIn 1.2s;
+  }
+
+  .ending h1 {
+    font-size: 26px;
+    letter-spacing: 0.4em;
+    color: #5a9ee8;
+    margin-bottom: 44px;
+  }
+
+  .ending p {
+    font-size: 15px;
+    line-height: 2.2;
+    color: #8a9cb5;
+    margin-bottom: 12px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0a1830;
+    border: 1px solid #2a4878;
+    color: #8ab8e8;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    z-index: 200;
+    animation: toastIn 2.4s forwards;
+  }
+
+  @keyframes toastIn {
+    0% { opacity: 0; transform: translate(-50%, 10px); }
+    15%, 85% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, 0); }
+  }
+  .inner-voice {
+    min-height: 0;
+    margin-bottom: 20px;
+    padding: 0 4px;
+    font-size: 14px;
+    line-height: 1.9;
+    font-style: italic;
+    letter-spacing: 0.06em;
+    color: #6a8ab0;
+    opacity: 0;
+    transition: opacity 1.2s ease-in;
+    text-align: center;
+  }
+
+  .inner-voice.show {
+    opacity: 1;
+  }
+
+  .inner-voice::before {
+    content: "“";
+    color: #4a6a95;
+    margin-right: 2px;
+  }
+
+  .inner-voice::after {
+    content: "”";
+    color: #4a6a95;
+    margin-left: 2px;
+  }
+  /* ---------- 对照关 ---------- */
+#spectrum.compare-mode {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 18px 16px;
+}
+
+.known-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 10px 14px;
+  background: #06102a;
+  border: 1px solid #1a3050;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  align-items: center;
+}
+
+.known-label {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: #5a6a85;
+  padding-right: 10px;
+  border-right: 1px solid #1a3050;
+}
+
+.known-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.known-item .sela {
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  font-weight: bold;
+}
+
+.known-item.root .sela { color: #e8c876; }
+.known-item.suffix .sela { color: #7ac8e8; }
+.known-item .cn { color: #8a9cb5; }
+
+.compare-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 0;
+  border-bottom: 1px dashed #122444;
+  flex-wrap: wrap;
+}
+
+.compare-row:last-child { border-bottom: none; }
+
+.compare-left {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.compare-left .spec-block {
+  min-width: 60px;
+  padding: 8px 10px;
+  gap: 4px;
+}
+
+.compare-left .spec-block .spec-wave { height: 20px; }
+.compare-left .spec-block .spec-wave span { width: 2px; }
+.compare-left .spec-block .spec-text { font-size: 14px; }
+
+.compare-right {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: #c8d4e0;
+  letter-spacing: 0.08em;
+  padding-left: 12px;
+  border-left: 2px solid #1a3050;
+}
+
+.compare-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.compare-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.compare-answer-label {
+  font-family: "Courier New", monospace;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  color: #e8c876;
+  font-weight: bold;
+  flex: 0 0 60px;
+}
+
+.compare-answer-eq {
+  color: #4a5a75;
+  flex: 0 0 auto;
+}
+
+.compare-answer-input {
+  flex: 1;
+  background: #04091a;
+  border: 1px solid #1e3050;
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: #e8c876;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  min-width: 0;
+  transition: border-color .2s;
+}
+
+.compare-answer-input:focus { border-color: #5a9ee8; }
+.compare-answer-input::placeholder { color: #3a4a65; }
+.compare-answer-input:disabled {
+  background: #0a1830;
+  color: #6fbf73;
+  border-color: #2a4878;
+  cursor: default;
+}
+
+.compare-answer-btn {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.compare-answer-fb {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: #e8a878;
+  min-width: 40px;
+}
+
+.compare-answer-fb.good { color: #6fbf73; }
+/* ---------- 通讯关 ---------- */
+.freq-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 0;
+  margin: 20px 0;
+  background: #04091a;
+  border: 1px solid #1e3050;
+  border-radius: 8px;
+  animation: freqGlow 2.4s infinite;
+}
+
+.freq-value {
+  font-family: "Courier New", monospace;
+  font-size: 56px;
+  letter-spacing: 0.08em;
+  color: #5a9ee8;
+  font-weight: bold;
+  text-shadow: 0 0 40px #5a9ee866;
+}
+
+.freq-unit {
+  font-family: "Courier New", monospace;
+  font-size: 18px;
+  letter-spacing: 0.3em;
+  color: #4a6898;
+}
+
+@keyframes freqGlow {
+  0%, 100% { box-shadow: 0 0 0 transparent; }
+  50% { box-shadow: 0 0 30px #5a9ee822 inset; }
+}
+
+.caller-line {
+  font-family: "Courier New", monospace;
+  font-size: 24px;
+  letter-spacing: 0.2em;
+  color: #a8d0f0;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.caller-cn {
+  font-size: 14px;
+  color: #8a9cb5;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- 敌人彩蛋 ---------- */
+.enemy-overlay {
+  position: fixed;
+  inset: 0;
+  background: #400000;
+  z-index: 999;
+  overflow: hidden;
+  animation: enemyFlash 0.2s infinite alternate;
+}
+
+.enemy-overlay.fade-out {
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.enemy-overlay span {
+  position: absolute;
+  color: #ff2020;
+  font-family: "SimHei", "Microsoft YaHei", sans-serif;
+  font-weight: bold;
+  text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+@keyframes enemyFlash {
+  from { background: #400000; }
+  to { background: #700000; }
+}
+/* ---------- 时间轴关 ---------- */
+.timeline-nav {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 18px 0 22px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.timeline-btn {
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  padding: 12px 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid #1e3050;
+  color: #7a8a9e;
+  transition: all .3s;
+  min-width: 110px;
+}
+
+.timeline-btn:hover {
+  border-color: #5a9ee8;
+  color: #a8d0f0;
+}
+
+.timeline-btn.active {
+  border-color: #5a9ee8;
+  color: #a8d0f0;
+  background: #0a1830;
+  box-shadow: 0 0 24px #5a9ee833;
+}
+
+.timeline-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 22px 16px;
+  background: #030610;
+  border: 1px solid #0e1c34;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  min-height: 110px;
+  margin-bottom: 14px;
+  transition: opacity .3s;
+}
+
+.timeline-sentence.fading {
+  opacity: 0;
+}
+
+.timeline-sentence .spec-block {
+  min-width: 70px;
+  padding: 10px 12px;
+}
+
+.timeline-audio-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.timeline-audio-row .audio-btn {
+  font-size: 12px;
+  padding: 8px 16px;
+}
+
+/* ---------- 血红色遮罩 ---------- */
+.blood-overlay {
+  position: fixed;
+  inset: 0;
+  background: #8b0000;
+  z-index: 999;
+  pointer-events: none;
+  animation: bloodPulse 0.15s infinite alternate;
+}
+
+.blood-overlay.fade-out {
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+@keyframes bloodPulse {
+  from { background: #8b0000; }
+  to { background: #cc0000; }
+}
+
+.caller-cn.highlight {
+  color: #e8a878;
+  font-weight: bold;
+  text-shadow: 0 0 12px #e8a87855;
+}
+
+/* ---------- 广播关 ---------- */
+.broadcast-progress {
+  text-align: center;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  color: #5a6a85;
+  letter-spacing: 0.15em;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #0e1c34;
+}
+
+.broadcast-progress .done {
+  color: #6fbf73;
+}
+
+.broadcast-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px dashed #0e1c34;
+}
+
+.broadcast-row:last-child { border-bottom: none; }
+
+.broadcast-num {
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  color: #4a5a75;
+  letter-spacing: 0.05em;
+  min-width: 28px;
+  flex: 0 0 auto;
+  padding-top: 10px;
+}
+
+.broadcast-row .compare-left {
+  min-width: 0;
+}
+
+.broadcast-answer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #0e1c34;
+}
+
+.broadcast-answer-row:last-child { border-bottom: none; }
+
+.broadcast-answer-num {
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  color: #4a5a75;
+  letter-spacing: 0.05em;
+  min-width: 28px;
+  flex: 0 0 auto;
+}
+
+.broadcast-answer-input {
+  flex: 1;
+  background: #04091a;
+  border: 1px solid #1e3050;
+  border-radius: 5px;
+  padding: 8px 12px;
+  color: #e8c876;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  min-width: 0;
+  transition: border-color .2s;
+}
+
+.broadcast-answer-input:focus { border-color: #5a9ee8; }
+.broadcast-answer-input::placeholder { color: #3a4a65; }
+.broadcast-answer-input:disabled {
+  background: #0a1830;
+  color: #6fbf73;
+  border-color: #2a4878;
+  cursor: default;
+}
+
+.broadcast-answer-btn {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
+.broadcast-answer-fb {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: #e8a878;
+  min-width: 24px;
+}
+
+.broadcast-answer-fb.good { color: #6fbf73; }
+
+/* ---------- 回话关 ---------- */
+.reply-round-info {
+  text-align: center;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  color: #5a6a85;
+  letter-spacing: 0.15em;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #0e1c34;
+}
+
+.reply-caller {
+  padding: 18px 16px;
+  background: #030610;
+  border: 1px solid #0e1c34;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.reply-caller-label {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: #5a6a85;
+  margin-bottom: 12px;
+}
+
+.reply-caller-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.reply-caller-cn {
+  font-size: 14px;
+  color: #c8d4e0;
+  letter-spacing: 0.08em;
+  padding-top: 6px;
+}
+
+.reply-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reply-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: #08122a;
+  border: 1px solid #1a3050;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .22s;
+  font-family: inherit;
+  color: #c8d4e0;
+  text-align: left;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.reply-option:hover {
+  border-color: #5a9ee8;
+  background: #0c1c3a;
+  transform: translateX(2px);
+}
+
+.reply-option-label {
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  color: #4a5a75;
+  letter-spacing: 0.1em;
+  border: 1px solid #1a3050;
+  padding: 3px 8px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+}
+
+.reply-option:hover .reply-option-label {
+  border-color: #5a9ee8;
+  color: #5a9ee8;
+}
+
+.reply-option-text {
+  font-family: "Courier New", monospace;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  color: #e8c876;
+  font-weight: bold;
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
+}
+
+.reply-option-cn {
+  font-size: 13px;
+  color: #8a9cb5;
+  letter-spacing: 0.05em;
+  flex: 0 0 auto;
+}
+
+.reply-option.correct {
+  border-color: #6fbf73;
+  background: #0a1a0a;
+  box-shadow: 0 0 20px #6fbf7322;
+}
+
+.reply-option.correct .reply-option-text { color: #6fbf73; }
+
+.reply-option.wrong {
+  border-color: #e8a87888;
+  background: #1a1008;
+  opacity: 0.75;
+}
+
+.reply-option.wrong .reply-option-text { color: #e8a878; }
+
+.reply-option.disabled {
+  pointer-events: none;
+}
+
+.reply-feedback {
+  text-align: center;
+  min-height: 22px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #8a9cb5;
+  letter-spacing: 0.08em;
+  line-height: 1.8;
+}
+
+.reply-feedback.good { color: #6fbf73; }
+.reply-feedback.warn { color: #e8a878; }
+
+/* ---------- 隐藏分支占位 ---------- */
+.hidden-branch {
+  max-width: 620px;
+  margin: 80px auto 0;
+  text-align: center;
+  animation: fadeIn 1.6s;
+}
+
+.hidden-branch h1 {
+  font-size: 24px;
+  letter-spacing: 0.5em;
+  color: #e8a878;
+  margin-bottom: 50px;
+  text-shadow: 0 0 30px #e8a87855;
+}
+
+.hidden-branch p {
+  font-size: 15px;
+  line-height: 2.2;
+  color: #a89b86;
+  margin-bottom: 14px;
+  letter-spacing: 0.08em;
+}
+/* ---------- 对话关 ---------- */
+.dialogue-block {
+  padding: 18px 16px;
+  background: #030610;
+  border: 1px solid #0e1c34;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  animation: fadeIn 1.2s;
+}
+
+.dialogue-label {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: #5a6a85;
+  margin-bottom: 14px;
+}
+
+.dialogue-text {
+  font-size: 16px;
+  line-height: 2.2;
+  color: #c8d4e0;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+.dialogue-text .dc {
+  color: #7ac8e8;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  padding: 0 2px;
+}
+
+.dialogue-text .dc-root {
+  color: #e8c876;
+}
+
+.dialogue-note {
+  font-size: 12px;
+  color: #6a7a95;
+  font-style: italic;
+  line-height: 1.9;
+  padding-left: 10px;
+  border-left: 2px solid #1e3050;
+  margin-top: 10px;
+}
+
+.dialogue-answer {
+  margin-top: 6px;
+}
+
+/* ---------- 疯 彩蛋 ---------- */
+.cyull-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000000e6;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 999;
+  animation: fadeIn 0.6s;
+}
+
+.cyull-box {
+  max-width: 500px;
+  text-align: center;
+}
+
+.cyull-word {
+  font-family: "Courier New", monospace;
+  font-size: 72px;
+  letter-spacing: 0.15em;
+  color: #e8a878;
+  font-weight: bold;
+  text-shadow: 0 0 60px #e8a87866, 0 0 120px #e8a87833;
+  margin-bottom: 30px;
+  animation: cyullShake 0.6s;
+}
+
+@keyframes cyullShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.cyull-cn {
+  font-size: 18px;
+  color: #c8d4e0;
+  letter-spacing: 0.4em;
+  margin-bottom: 20px;
+}
+
+.cyull-sub {
+  font-size: 13px;
+  color: #6a7a95;
+  letter-spacing: 0.15em;
+  font-style: italic;
+}
+
+/* ---------- 笔记按钮 ---------- */
+.btn-notes {
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid #2a4878;
+  color: #8ab8e8;
+  transition: all .18s;
+}
+
+.btn-notes:hover {
+  border-color: #5a9ee8;
+  color: #a8d0f0;
+}
+
+/* ---------- 笔记面板 ---------- */
+.notes-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000000d0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 150;
+  animation: fadeIn .3s;
+}
+
+.notes-panel {
+  width: min(680px, 100%);
+  max-height: 80vh;
+  background: linear-gradient(180deg, #0a1830, #050a18);
+  border: 1px solid #5a9ee855;
+  border-radius: 12px;
+  padding: 28px 26px;
+  box-shadow: 0 0 60px #5a9ee822;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notes-title {
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: #a8d0f0;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #1a3050;
+  text-align: center;
+}
+
+.notes-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-right: 6px;
+}
+
+.notes-list::-webkit-scrollbar { width: 6px; }
+.notes-list::-webkit-scrollbar-thumb { background: #1a3050; border-radius: 3px; }
+
+.note-item {
+  padding: 14px 16px;
+  background: #04091a;
+  border: 1px solid #122444;
+  border-radius: 8px;
+}
+
+.note-time {
+  font-family: "Courier New", monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: #4a5a75;
+  margin-bottom: 10px;
+}
+
+.note-body {
+  font-size: 14px;
+  line-height: 1.9;
+  color: #c8d4e0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-body .dc-root {
+  color: #e8c876;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+.notes-empty {
+  text-align: center;
+  color: #4a5a75;
+  font-size: 13px;
+  padding: 40px 0;
+  font-style: italic;
+}
+
+.notes-close {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #1a3050;
+  text-align: center;
+}
+
+/* ---------- 书写关 ---------- */
+.essay-box {
+  width: 100%;
+  min-height: 220px;
+  background: #04091a;
+  border: 1px solid #1e3050;
+  border-radius: 8px;
+  padding: 16px 18px;
+  color: #e8c876;
+  font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+  font-size: 15px;
+  line-height: 2;
+  outline: none;
+  resize: vertical;
+  transition: border-color .2s;
+  letter-spacing: 0.04em;
+}
+
+.essay-box:focus { border-color: #5a9ee8; }
+.essay-box::placeholder { color: #3a4a65; }
+
+.essay-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #06102a;
+  border: 1px solid #1a3050;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.essay-topics-label {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: #5a6a85;
+  padding-right: 8px;
+  border-right: 1px solid #1a3050;
+}
+
+.topic-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #1e3050;
+  color: #7a8a9e;
+  transition: all .3s;
+}
+
+.topic-chip .topic-cn {
+  font-family: inherit;
+  font-size: 12px;
+  color: #5a6a85;
+}
+
+.topic-chip.used {
+  border-color: #c8a24a88;
+  color: #e8c876;
+  background: #1a1408;
+}
+
+.topic-chip.used .topic-cn {
+  color: #a8874a;
+}
+
+.essay-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #5a6a85;
+  letter-spacing: 0.15em;
+}
+
+.essay-count {
+  font-family: "Courier New", monospace;
+}
+
+.essay-count.ready { color: #6fbf73; }
+
+/* ---------- 诱惑关 ---------- */
+.monologue-block {
+  padding: 20px 18px;
+  background: #030610;
+  border: 1px solid #0e1c34;
+  border-radius: 8px;
+  margin-bottom: 18px;
+  animation: fadeIn 1.6s;
+}
+
+.monologue-line {
+  font-size: 15px;
+  line-height: 2.2;
+  color: #c8d4e0;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+.monologue-line:last-child { margin-bottom: 0; }
+
+.monologue-line .dc {
+  color: #7ac8e8;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+}
+
+.monologue-line .dc-root {
+  color: #e8c876;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+}
+
+.temptation-choice {
+  text-align: center;
+  padding: 40px 20px 20px;
+}
+
+.temptation-btn {
+  font-family: inherit;
+  font-size: 20px;
+  letter-spacing: 0.6em;
+  text-indent: 0.6em;
+  padding: 20px 60px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid #c8a24a88;
+  color: #e8c876;
+  transition: all .4s;
+  position: relative;
+  overflow: hidden;
+}
+
+.temptation-btn:hover {
+  border-color: #c8a24a;
+  color: #ffffff;
+  background: #1a1408;
+  box-shadow: 0 0 60px #c8a24a44, inset 0 0 30px #c8a24a22;
+}
+
+.temptation-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #c8a24a33 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity .4s;
+}
+
+.temptation-btn:hover::after { opacity: 1; }
+
+/* ---------- 记忆检查 ---------- */
+.memory-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 300;
+  animation: memoryDarken 1.4s forwards;
+}
+
+@keyframes memoryDarken {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.memory-box {
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+  opacity: 0;
+  animation: memoryAppear 1.2s 1s forwards;
+}
+
+@keyframes memoryAppear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.memory-prompt {
+  font-size: 15px;
+  line-height: 2.4;
+  color: #7a8a9e;
+  letter-spacing: 0.1em;
+  margin-bottom: 40px;
+  white-space: pre-line;
+  font-style: italic;
+}
+
+.memory-input-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.memory-input {
+  flex: 1;
+  max-width: 360px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #2a4878;
+  border-radius: 0;
+  padding: 12px 4px;
+  color: #e8c876;
+  font-family: inherit;
+  font-size: 17px;
+  outline: none;
+  text-align: center;
+  letter-spacing: 0.1em;
+  transition: border-color .3s;
+}
+
+.memory-input:focus { border-bottom-color: #5a9ee8; }
+.memory-input::placeholder { color: #2a3a55; font-style: italic; }
+
+.memory-submit {
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid #2a4878;
+  color: #8ab8e8;
+  transition: all .18s;
+}
+
+.memory-submit:hover {
+  border-color: #5a9ee8;
+  color: #a8d0f0;
+}
+
+.memory-feedback {
+  min-height: 20px;
+  font-size: 13px;
+  color: #e8a878;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- 结局1 · 回归自我 ---------- */
+.ending-return {
+  max-width: 620px;
+  margin: 90px auto;
+  text-align: center;
+  animation: fadeIn 2s;
+}
+
+.ending-return h1 {
+  font-size: 26px;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  color: #c8d4e0;
+  margin-bottom: 50px;
+  text-shadow: 0 0 30px #5a9ee855;
+}
+
+.ending-return p {
+  font-size: 15px;
+  line-height: 2.4;
+  color: #8a9cb5;
+  margin-bottom: 14px;
+  letter-spacing: 0.06em;
+}
+
+.ending-return .ending-tag {
+  color: #4a5a75;
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  margin-top: 50px;
+}
+
+.ending-return .btn {
+  margin-top: 50px;
+}
+
+.memory-input-row .shake {
+  animation: shake .35s;
+}
+
+/* ---------- 终局关 ---------- */
+.finale-note-display {
+  padding: 26px 24px;
+  background: #030610;
+  border: 1px solid #1a3050;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  animation: fadeIn 1.6s;
+  box-shadow: 0 0 40px #5a9ee811 inset;
+}
+
+.finale-note-label {
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: #5a9ee8;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.finale-note-body {
+  font-size: 15px;
+  line-height: 2.2;
+  color: #c8d4e0;
+  letter-spacing: 0.06em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.finale-note-body .dc-root {
+  color: #e8c876;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+}
+
+.finale-choice {
+  text-align: center;
+  padding: 40px 20px 30px;
+}
+
+.finale-choice-btn {
+  font-family: inherit;
+  font-size: 18px;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  padding: 18px 52px;
+  margin: 0 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid #2a4878;
+  color: #8ab8e8;
+  transition: all .4s;
+}
+
+.finale-choice-btn:hover {
+  border-color: #5a9ee8;
+  color: #ffffff;
+  background: #0a1830;
+  box-shadow: 0 0 50px #5a9ee844, inset 0 0 30px #5a9ee822;
+}
+
+.finale-choice-btn.danger {
+  border-color: #8b0000aa;
+  color: #e8a878;
+}
+
+.finale-choice-btn.danger:hover {
+  border-color: #c84444;
+  color: #ffffff;
+  background: #1a0808;
+  box-shadow: 0 0 50px #c8444444, inset 0 0 30px #c8444422;
+}
+
+/* ---------- 结局2 · 帮凶 ---------- */
+.ending-accomplice {
+  max-width: 640px;
+  margin: 70px auto;
+  text-align: center;
+  animation: fadeIn 2s;
+}
+
+.ending-accomplice h1 {
+  font-size: 28px;
+  letter-spacing: 0.6em;
+  text-indent: 0.6em;
+  color: #c84444;
+  margin-bottom: 50px;
+  text-shadow: 0 0 50px #c8444466, 0 0 100px #c8444433;
+  animation: accompliceGlow 3s infinite;
+}
+
+@keyframes accompliceGlow {
+  0%, 100% { text-shadow: 0 0 50px #c8444466, 0 0 100px #c8444433; }
+  50% { text-shadow: 0 0 70px #c84444aa, 0 0 140px #c8444455; }
+}
+
+.ending-accomplice p {
+  font-size: 15px;
+  line-height: 2.4;
+  color: #a89b86;
+  margin-bottom: 14px;
+  letter-spacing: 0.06em;
+}
+
+.ending-accomplice .ending-tag {
+  color: #6d5545;
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  margin-top: 50px;
+}
+
+.ending-accomplice .btn { margin-top: 50px; }
+
+/* ---------- 结局3 · 安定生活 ---------- */
+.ending-peace {
+  max-width: 640px;
+  margin: 70px auto;
+  text-align: center;
+  animation: fadeIn 2s;
+}
+
+.ending-peace h1 {
+  font-size: 26px;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  color: #c8d4e0;
+  margin-bottom: 50px;
+  text-shadow: 0 0 30px #5a9ee855;
+}
+
+.ending-peace p {
+  font-size: 15px;
+  line-height: 2.4;
+  color: #8a9cb5;
+  margin-bottom: 14px;
+  letter-spacing: 0.06em;
+}
+
+.ending-peace .doctor-line {
+  font-family: "Courier New", monospace;
+  font-size: 20px;
+  letter-spacing: 0.18em;
+  color: #e8a878;
+  margin: 30px 0 12px;
+  text-shadow: 0 0 30px #e8a87866;
+  animation: doctorGlow 3s infinite;
+}
+
+@keyframes doctorGlow {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; text-shadow: 0 0 50px #e8a878aa; }
+}
+
+.ending-peace .doctor-cn {
+  font-size: 13px;
+  color: #6d5545;
+  letter-spacing: 0.3em;
+  font-style: italic;
+  margin-bottom: 40px;
+}
+
+.ending-peace .ending-tag {
+  color: #4a5a75;
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  margin-top: 50px;
+}
+
+.ending-peace .btn { margin-top: 50px; }
+
+/* ---------- 隐藏分支 · 疯子 ---------- */
+.hidden-reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 340px;
+  text-align: center;
+  animation: fadeIn 2s;
+}
+
+.hidden-reveal .cyull-word {
+  font-family: "Courier New", monospace;
+  font-size: 64px;
+  letter-spacing: 0.2em;
+  color: #e8a878;
+  font-weight: bold;
+  text-shadow: 0 0 50px #e8a87866, 0 0 100px #e8a87833;
+  margin-bottom: 24px;
+  animation: cyullShake 0.8s;
+}
+
+@keyframes cyullShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-8px); }
+  30% { transform: translateX(8px); }
+  45% { transform: translateX(-5px); }
+  60% { transform: translateX(5px); }
+  75% { transform: translateX(-2px); }
+}
+
+.hidden-reveal .cyull-cn {
+  font-size: 18px;
+  color: #c8d4e0;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  margin-bottom: 14px;
+}
+
+.hidden-reveal .cyull-sub {
+  font-size: 13px;
+  color: #6a7a95;
+  letter-spacing: 0.15em;
+  font-style: italic;
+}
+
+.hidden-monologue {
+  max-width: 620px;
+  margin: 40px auto 0;
+  text-align: center;
+}
+
+.hidden-monologue p {
+  font-size: 15px;
+  line-height: 2.4;
+  color: #8a9cb5;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+}
+
+.hidden-monologue .em {
+  color: #e8c876;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  letter-spacing: 0.15em;
+}
+
+.hidden-monologue .dim {
+  color: #6d5545;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.hidden-note-input {
+  max-width: 560px;
+  margin: 40px auto 0;
+  text-align: center;
+}
+
+.hidden-note-label {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: #5a6a85;
+  margin-bottom: 18px;
+}
+
+.hidden-note-box {
+  width: 100%;
+  min-height: 120px;
+  background: #04091a;
+  border: 1px solid #1e3050;
+  border-radius: 8px;
+  padding: 14px 16px;
+  color: #e8c876;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 2;
+  outline: none;
+  resize: vertical;
+  transition: border-color .2s;
+  letter-spacing: 0.04em;
+}
+
+.hidden-note-box:focus { border-color: #5a9ee8; }
+.hidden-note-box::placeholder { color: #3a4a65; }
+
+.hidden-actions {
+  margin-top: 22px;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ---------- 结局 0 · 疯子 ---------- */
+.ending-madman {
+  max-width: 620px;
+  margin: 70px auto;
+  text-align: center;
+  animation: fadeIn 2.4s;
+}
+
+.ending-madman h1 {
+  font-size: 26px;
+  letter-spacing: 0.7em;
+  text-indent: 0.7em;
+  color: #e8a878;
+  margin-bottom: 56px;
+  text-shadow: 0 0 40px #e8a87855;
+}
+
+.ending-madman p {
+  font-size: 15px;
+  line-height: 2.4;
+  color: #8a9cb5;
+  margin-bottom: 14px;
+  letter-spacing: 0.06em;
+}
+
+.ending-madman .final-line {
+  color: #e8c876;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  margin-top: 32px;
+}
+
+.ending-madman .ending-tag {
+  color: #4a5a75;
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  margin-top: 56px;
+}
+
+.ending-madman .btn {
+  margin-top: 50px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="brand">反常频段</div>
+    <div class="freq" id="freqDisplay"><span class="live"></span>88.8 MHz · 信号捕捉中</div>
+    <div class="header-right">
+      <div class="progress" id="progress">第 1 关</div>
+      <button class="btn-notes" id="notesBtn">笔 记</button>
+      <button class="btn-restart" id="restartBtn">重 开</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="left-col">
+      <section class="panel">
+        <h2>现 场</h2>
+        <div id="clueTitle"></div>
+        <div id="clueText"></div>
+      </section>
+
+      <section class="panel">
+        <h2>频 谱</h2>
+        <div class="spectrum-controls" id="audioControls"></div>
+        <div class="audio-note" id="audioNote"></div>
+        <div class="inner-voice" id="innerVoice"></div>
+        <div class="spectrum" id="spectrum"></div>
+      </section>
+
+      <section class="panel">
+        <h2>解 读</h2>
+        <div id="puzzle"></div>
+      </section>
+    </div>
+
+    <aside class="panel">
+      <h2>记 录 本</h2>
+      <div class="lex-section">
+        <div class="lex-title root">词 根 本</div>
+        <div class="lex-list" id="rootList"></div>
+      </div>
+      <div class="lex-section">
+        <div class="lex-title suffix">后 缀 本</div>
+        <div class="lex-list" id="suffixList"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   完整词典（初始为空，随关卡解锁）
+   ========================================================= */
+const ALL_ROOTS = {
+  kal: "说 / 声音",
+  vor: "看 / 注视",
+  shen: "人",
+  thok: "火",
+  mel: "夜",
+  zeth: "存在",
+  mor: "死",
+  dun: "给予",
+  hyph: "我",
+  gat: "你",
+  tye: "他",
+  tya: "她",
+  tyo: "它",
+  yamo: "城堡",
+  rynn: "去 / 来 / 移动 / 到",
+  brun: "敌人",
+  cyull: "疯子"
+};
+
+const ALL_SUFFIXES = {
+  esh: "主语",
+  or: "宾语",
+  um: "与格",
+  tu: "过去",
+  ka: "现在",
+  vo: "将来",
+  an: "否定",
+  il: "疑问",
+  al: "决定",
+  tre: "零 / 没有",
+  ee: "双 / 两个",
+  ike: "复数（三个及以上）",
+  ae: "无限 / 无尽"
+};
+
+/* =========================================================
+   状态
+   ========================================================= */
+const state = {
+  level: 0,
+  roots: [],
+  suffixes: [],
+  levels: [],
+  commStage: 1,
+  lastCommKey: null,
+  playerWords: "",
+  replyKey: null,
+  replyRound: 0,
+  replyResults: [],
+  replyAttempt: 1,
+  dialogueKey: null,
+  dialogueStage: 0,
+  essayKey: null,
+  essayText: "",
+  temptationKey: null,
+  temptationStage: 0,
+  finaleKey: null,
+  finaleStage: 0
+};
+
+const $ = s => document.querySelector(s);
+
+/* =========================================================
+   关卡数据
+   ---------------------------------------------------------
+   audios: 每个音频按钮
+     - id:    标识（main / hint）
+     - label: 按钮文字
+     - file:  音频路径
+     - note:  播放后显示的注释（可选）
+   blocks: 频谱块
+     - text:  显示的文本（如 kal）
+     - type:  "root" | "suffix"
+     - audio: 单独点击播放的音频
+   ========================================================= */
+const LEVELS = [
+  {
+    key: "K01",
+    label: 1,
+    title: "信号",
+    scene: "凌晨两点十七分。你又失眠了。\n\n收音机开着，频率在 88.8 附近来回跳。忽然，一个声音从噪音里浮出来。\n\n很短。只有一个音节，重复了三次。",
+    audios: [
+      {
+        id: "main",
+        label: "▶ 播放信号",
+        file: "audio/01-kal.mp3",
+        note: "一个音节，重复了三次。"
+      },
+      {
+        id: "hint",
+        label: "▶ 再听一段",
+        file: "audio/conversation.mp3",
+        note: "之后你听到另一段声音。两个人，像是在交谈。但内容你听不懂。"
+      }
+    ],
+    blocks: [
+      { text: "kal", type: "root", audio: "audio/kal.mp3" }
+    ],
+    question: "这个声音在说什么？",
+    accepts: ["说", "声音", "说话", "语言", "发声", "喊", "叫", "交流", "对话", "人声", "谈话", "言语"],
+    learned: { type: "root", word: "kal", meaning: "说 / 声音" },
+    reveal: "你回放了三遍。每一次，都是同一个词。\n\n它在说。或者，它就是「说」本身。",
+    innerVoice: "将思想以声音的形式表达，就是这个词语。"
+  },
+{
+  key: "K02",
+  label: 2,
+  kind: "compare",
+  title: "影子",
+  scene: "你调回那个频率。信号还在。\n\n这一次，声音没有停在原地。\n\nkal 后面，总是跟着另一个音节。很短，像是它的影子。\n\n但你发现，影子有两种。",
+  audios: [
+    {
+      id: "esh",
+      label: "▶ kal-esh",
+      file: "audio/02-kal-esh.mp3",
+      note: "一种尾巴。"
+    },
+    {
+      id: "or",
+      label: "▶ kal-or",
+      file: "audio/02-kal-or.mp3",
+      note: "另一种尾巴。听起来很短，方向却不一样。"
+    },
+    {
+      id: "conversation",
+      label: "▶ 再听一段",
+      file: "audio/02-conversation.mp3",
+      note: "又是那段对话。你听见 kal 后面跟着两种不同的尾巴。"
+    }
+  ],
+  known: [
+    { type: "root", text: "kal", cn: "说" }
+  ],
+  pairs: [
+    {
+      devil: [
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" }
+      ],
+      cn: "说话的主体"
+    },
+    {
+      devil: [
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "说的对象 / 说话的对象"
+    }
+  ],
+  question: "同一个词根 kal，配上两种不同的尾巴。推断这两个后缀各自标记什么。",
+  answers: [
+    {
+      word: "-esh",
+      accepts: [
+        "主语", "做事的人", "做动作的人", "施动者",
+        "动作的发出者", "主语标记", "动作的执行者",
+        "主动者", "发起动作的人", "动作主体"
+      ],
+      meaning: "主语 / 做动作的人"
+    },
+    {
+      word: "-or",
+      accepts: [
+        "宾语", "承受动作的人", "承受动作的东西",
+        "动作的对象", "受动者", "宾语标记",
+        "被作用的对象", "被作用的东西", "动作的接受者", "被动者"
+      ],
+      meaning: "宾语 / 承受动作的东西"
+    }
+  ],
+  learned: [
+    { type: "suffix", word: "esh", meaning: "主语" },
+    { type: "suffix", word: "or", meaning: "宾语" }
+  ],
+  reveal: "词根是身体，后缀是关节。\n\n同一个词根，换一个尾巴，角色就换了。\n\n-esh：做这个动作的人。\n-or：承受这个动作的东西。\n\n它们不是靠位置说话。它们靠尾巴说话。"
+},
+{
+  key: "K03",
+  label: 3,
+  kind: "compare",
+  title: "对照",
+  scene: "你调回频率。\n\n这一次，广播里出现了两种声音。\n\n先是那个熟悉的、低沉的语言。然后——一个机械、僵硬、像刚学会说话的中文声音，把同一句话念了出来。\n\n对面也在学习你的语言。",
+  audios: [
+    {
+      id: "devil",
+      label: "▶ 陌生语言",
+      file: "audio/03-devil.mp3",
+      note: "三句话。每句的结构都一样：一个带尾巴的动词，一个动词，一个带尾巴的名词。"
+    },
+    {
+      id: "human",
+      label: "▶ 中文对照",
+      file: "audio/03-human.mp3",
+      note: "一个僵硬的声音，用中文念了同样三句话。"
+    }
+  ],
+  known: [
+    { type: "root", text: "kal", cn: "说" },
+    { type: "suffix", text: "esh", cn: "主语" },
+    { type: "suffix", text: "or", cn: "宾语" }
+  ],
+  pairs: [
+    {
+      devil: [
+        { text: "vor", type: "root", audio: "audio/words/vor.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "vor", type: "root", audio: "audio/words/vor.mp3" },
+        { text: "thok", type: "root", audio: "audio/words/thok.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "看者 看 火"
+    },
+    {
+      devil: [
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" },
+        { text: "shen", type: "root", audio: "audio/words/shen.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "说话者 说 人"
+    },
+    {
+      devil: [
+        { text: "vor", type: "root", audio: "audio/words/vor.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "vor", type: "root", audio: "audio/words/vor.mp3" },
+        { text: "mel", type: "root", audio: "audio/words/mel.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "看者 看 夜"
+    }
+  ],
+  question: "根据三组对照，推断下面四个词根的含义。",
+  answers: [
+    { word: "vor",  accepts: ["看", "看着", "注视", "观看", "望", "盯着", "凝视"], meaning: "看 / 注视" },
+    { word: "thok", accepts: ["火", "火焰", "火堆", "燃烧", "火光"], meaning: "火" },
+    { word: "shen", accepts: ["人", "人类", "人们", "一个人", "人群"], meaning: "人" },
+    { word: "mel",  accepts: ["夜", "夜晚", "黑夜", "晚上", "夜里"], meaning: "夜" }
+  ],
+  learned: [
+    { type: "root", word: "vor",  meaning: "看 / 注视" },
+    { type: "root", word: "thok", meaning: "火" },
+    { type: "root", word: "shen", meaning: "人" },
+    { type: "root", word: "mel",  meaning: "夜" }
+  ],
+  reveal: "你看懂了。\n\n一个动词，把自己的名字送给做它的人——vor-esh，看的人。然后它自己站在那里，vor，看。再指向一个对象，thok-or，火。\n\n词根是身体，后缀是关节。位置可以随便换，只要后缀还在，意思就不会丢。\n\n它们不是靠位置说话。它们靠尾巴说话。"
+},
+{
+  key: "K04",
+  label: 4,
+  kind: "compare",
+  title: "称呼",
+  scene: "广播里出现了几个很短的音节。\n\n它们反复出现，像是在指人。",
+  audios: [
+    {
+      id: "devil",
+      label: "▶ 播放信号",
+      file: "audio/04-devil.mp3",
+      note: "五句话。每一句的开头，都是一个你不认识的短音节，后面跟着你已经认识的 -esh。"
+    }
+  ],
+  known: [
+    { type: "root", text: "kal", cn: "说" },
+    { type: "suffix", text: "esh", cn: "主语" },
+    { type: "suffix", text: "or", cn: "宾语" }
+  ],
+  pairs: [
+    {
+      devil: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" }
+      ],
+      cn: "我说话"
+    },
+    {
+      devil: [
+        { text: "gat", type: "root", audio: "audio/words/gat.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" }
+      ],
+      cn: "你说话"
+    },
+    {
+      devil: [
+        { text: "tye", type: "root", audio: "audio/words/tye.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" }
+      ],
+      cn: "他说话"
+    },
+    {
+      devil: [
+        { text: "tya", type: "root", audio: "audio/words/tya.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" }
+      ],
+      cn: "她说话"
+    },
+    {
+      devil: [
+        { text: "tyo", type: "root", audio: "audio/words/tyo.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" }
+      ],
+      cn: "它说话"
+    }
+  ],
+  question: "推断下面五个词根的含义。",
+  answers: [
+    { word: "hyph", accepts: ["我"], meaning: "我" },
+    { word: "gat",  accepts: ["你"], meaning: "你" },
+    { word: "tye",  accepts: ["他"], meaning: "他" },
+    { word: "tya",  accepts: ["她"], meaning: "她" },
+    { word: "tyo",  accepts: ["它"], meaning: "它" }
+  ],
+  learned: [
+    { type: "root", word: "hyph", meaning: "我" },
+    { type: "root", word: "gat",  meaning: "你" },
+    { type: "root", word: "tye",  meaning: "他" },
+    { type: "root", word: "tya",  meaning: "她" },
+    { type: "root", word: "tyo",  meaning: "它" }
+  ],
+  reveal: "它们和任何词根一样。加上 -esh 是主语，加上 -or 是宾语。\n\nhyph-esh = 我（做）。hyph-or = 我（被做）。\n\ngat-esh = 你（做）。gat-or = 你（被做）。\n\n魔鬼语里没有独立的人称代词。它们也是词根。"
+},
+{
+  key: "K05",
+  label: 5,
+  kind: "comm",
+  title: "来电",
+  scene: "你正要调回那个频率。\n\n手机响了。\n\n屏幕上没有号码，只有一片雪花。\n\n你接起来。",
+  callerWords: [
+    { text: "gat", type: "root", audio: "audio/words/gat.mp3" },
+    { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+    { text: "kal", type: "root", audio: "audio/words/kal.mp3" }
+  ],
+  callerAudio: "audio/05-caller.mp3",
+  callerCn: "你说话。",
+  stage1Question: "你要说什么？",
+  stage2Scene: "对面沉默了一会儿。\n\n然后，一个频率从听筒里传来。",
+  stage2Audio: "audio/05-freq.mp3",
+  stage2Freq: "77.7",
+  stage2Question: "输入你听到的频段。",
+  stage2Accepts: ["77.7", "77.7MHz", "77.7mhz", "77.7 MHz", "77.7兆", "77.7兆赫", "777"],
+  reveal: "电话挂断了。\n\n你回到收音机前，把频率拧到 77.7。"
+},
+{
+  key: "K06",
+  label: 6,
+  kind: "compare",
+  title: "数量",
+  scene: "77.7 MHz。\n\n信号重新接通。\n\n这一次，广播里的 thok 后面跟着不同的尾巴。\n\n一个也没有。两个。很多。数不尽。\n\n它们用尾巴，说数量。",
+  audios: [
+    {
+      id: "main",
+      label: "▶ 播放信号",
+      file: "audio/06-devil.mp3",
+      note: "四句话。词根都是 thok，变化只发生在尾巴上。"
+    }
+  ],
+  known: [
+    { type: "root", text: "thok", cn: "火" },
+    { type: "suffix", text: "esh", cn: "主语" },
+    { type: "suffix", text: "or", cn: "宾语" }
+  ],
+  pairs: [
+    {
+      devil: [
+        { text: "thok", type: "root", audio: "audio/words/thok.mp3" },
+        { text: "tre", type: "suffix", audio: "audio/words/tre.mp3" }
+      ],
+      cn: "没有火 / 零个火"
+    },
+    {
+      devil: [
+        { text: "thok", type: "root", audio: "audio/words/thok.mp3" },
+        { text: "ee", type: "suffix", audio: "audio/words/ee.mp3" }
+      ],
+      cn: "两团火"
+    },
+    {
+      devil: [
+        { text: "thok", type: "root", audio: "audio/words/thok.mp3" },
+        { text: "ike", type: "suffix", audio: "audio/words/ike.mp3" }
+      ],
+      cn: "火（很多）"
+    },
+    {
+      devil: [
+        { text: "thok", type: "root", audio: "audio/words/thok.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" }
+      ],
+      cn: "无尽的火 / 数不清的火"
+    }
+  ],
+  question: "推断下面四个后缀的含义。",
+  answers: [
+    { word: "-tre", accepts: ["零", "没有", "无", "零个", "0", "一个都没有", "无有"], meaning: "零 / 没有" },
+    { word: "-ee", accepts: ["双", "两个", "二", "2", "一对", "俩"], meaning: "双 / 两个" },
+    { word: "-ike", accepts: ["复数", "多个", "很多", "三个以上", "三个及以上", "多个（三个以上）", "一群", "若干"], meaning: "复数（三个及以上）" },
+    { word: "-ae", accepts: ["无限", "无尽", "无穷", "无数", "数不尽", "不可数", "无量", "无限多"], meaning: "无限 / 无尽" }
+  ],
+  learned: [
+    { type: "suffix", word: "tre", meaning: "零 / 没有" },
+    { type: "suffix", word: "ee", meaning: "双 / 两个" },
+    { type: "suffix", word: "ike", meaning: "复数（三个及以上）" },
+    { type: "suffix", word: "ae", meaning: "无限 / 无尽" }
+  ],
+  reveal: "零、二、多、无尽。\n\n魔鬼语用四个后缀，把数量钉在词根上。\n\nthok-tre：一个都没有。\nthok-ee：两个。\nthok-ike：很多。\nthok-ae：数不尽。\n\n数量不是独立的词。它也是尾巴。"
+},
+{
+  key: "K07",
+  label: 7,
+  kind: "timeline",
+  title: "时间轴",
+  scene: "77.7 MHz。\n\n广播里出现了一个熟悉的句子。\n\n主语没变，动词没变。\n\n但每一次重播，它的尾巴都不一样。\n\n像是三个不同的时间，叠在同一句话上。",
+  subject: [
+    { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+    { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+    { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" }
+  ],
+  verb: { text: "vor", type: "root", audio: "audio/words/vor.mp3" },
+  times: [
+    {
+      id: "past",
+      label: "← 快退",
+      suffix: "tu",
+      suffixAudio: "audio/words/tu.mp3",
+      object: [
+        { text: "shen", type: "root", audio: "audio/words/shen.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      audio: "audio/07-past.mp3",
+      cn: "我们曾看人"
+    },
+    {
+      id: "now",
+      label: "● 现在",
+      suffix: "ka",
+      suffixAudio: "audio/words/ka.mp3",
+      object: [
+        { text: "mel", type: "root", audio: "audio/words/mel.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      audio: "audio/07-now.mp3",
+      cn: "我们正在看夜"
+    },
+    {
+      id: "future",
+      label: "快进 →",
+      suffix: "vo",
+      suffixAudio: "audio/words/vo.mp3",
+      object: [
+        { text: "thok", type: "root", audio: "audio/words/thok.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      audio: "audio/07-future.mp3",
+      cn: "我们将看火"
+    }
+  ],
+  question: "三个时间点，三个不同的后缀。推断它们各自的含义。",
+  answers: [
+    { word: "-tu", accepts: ["过去", "曾", "曾经", "以前", "已经", "曾过", "已"], meaning: "过去" },
+    { word: "-ka", accepts: ["现在", "正在", "此刻", "当前", "当前正在", "此刻正在"], meaning: "现在" },
+    { word: "-vo", accepts: ["未来", "将来", "将会", "将会来", "以后", "将要", "未来将会"], meaning: "未来" }
+  ],
+  learned: [
+    { type: "suffix", word: "tu", meaning: "过去" },
+    { type: "suffix", word: "ka", meaning: "现在" },
+    { type: "suffix", word: "vo", meaning: "未来" }
+  ],
+  reveal: "同一个句子，三个时间。\n\nvor-tu：曾经看。\nvor-ka：正在看。\nvor-vo：将会看。\n\n时间不是独立的词。它也是尾巴。\n\n魔鬼语把所有东西都挂在词根上。"
+},
+{
+  key: "K08",
+  label: 8,
+  kind: "compare",
+  title: "决定",
+  scene: "77.7 MHz。\n\n广播里出现了新的句子。\n\n同一个动作，同一个目的地。\n\n但三句话，说的是三件完全不同的事。\n\n一个在问。一个在下决心。一个在拒绝。",
+  audios: [
+    {
+      id: "main",
+      label: "▶ 播放信号",
+      file: "audio/08-devil.mp3",
+      note: "三句话。主语、动词、宾语的位置都一样。变化只发生在动词的尾巴上。"
+    }
+  ],
+  known: [
+    { type: "root", text: "hyph", cn: "我" },
+    { type: "root", text: "gat", cn: "你" },
+    { type: "suffix", text: "esh", cn: "主语" },
+    { type: "suffix", text: "or", cn: "宾语" }
+  ],
+  pairs: [
+    {
+      devil: [
+        { text: "gat", type: "root", audio: "audio/words/gat.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "rynn", type: "root", audio: "audio/words/rynn.mp3" },
+        { text: "il", type: "suffix", audio: "audio/words/il.mp3" },
+        { text: "yamo", type: "root", audio: "audio/words/yamo.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "你到城堡吗"
+    },
+    {
+      devil: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "rynn", type: "root", audio: "audio/words/rynn.mp3" },
+        { text: "al", type: "suffix", audio: "audio/words/al.mp3" },
+        { text: "yamo", type: "root", audio: "audio/words/yamo.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我决定到城堡"
+    },
+    {
+      devil: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "rynn", type: "root", audio: "audio/words/rynn.mp3" },
+        { text: "an", type: "suffix", audio: "audio/words/an.mp3" },
+        { text: "yamo", type: "root", audio: "audio/words/yamo.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我不到城堡"
+    }
+  ],
+  question: "推断下面五个词的含义。",
+  answers: [
+    { word: "-il", accepts: ["疑问", "问", "是否", "吗", "疑问标记", "提问", "询问", "问句"], meaning: "疑问" },
+    { word: "-al", accepts: ["决定", "决心", "打算", "计划", "意愿", "决意", "意志", "决定要", "想要"], meaning: "决定" },
+    { word: "-an", accepts: ["否定", "不", "否", "没", "否定标记", "非", "不是", "不（否定）"], meaning: "否定" },
+    { word: "rynn", accepts: ["去", "来", "到", "移动", "前往", "走向", "走", "行", "来到", "去往"], meaning: "去 / 移动" },
+    { word: "yamo", accepts: ["城堡", "城", "要塞", "堡垒", "宫殿", "城池"], meaning: "城堡" }
+  ],
+  learned: [
+    { type: "suffix", word: "il", meaning: "疑问" },
+    { type: "suffix", word: "al", meaning: "决定" },
+    { type: "suffix", word: "an", meaning: "否定" },
+    { type: "root", word: "rynn", meaning: "去 / 移动" },
+    { type: "root", word: "yamo", meaning: "城堡" }
+  ],
+  reveal: "三个尾巴，三种态度。\n\n-il：在问。\n-al：决定。\n-an：否定。\n\n同一个动作 rynn，同一个目的地 yamo。但它们说的是三件完全不同的事。\n\nrynn 是魔鬼语里最泛用的词根。一切移动，都是它。"
+},
+{
+  key: "K09",
+  label: 9,
+  kind: "compare",
+  title: "给予",
+  scene: "77.7 MHz。\n\n广播里的声音变得庄重。\n\n像是一段誓言，或者一段教义。\n\n三句话。每一句都在讲一件事：谁，给予谁，什么。",
+  audios: [
+    {
+      id: "main",
+      label: "▶ 播放信号",
+      file: "audio/09-devil.mp3",
+      note: "三句话。注意 dun 后面跟的那个短音节——它标记了「给予谁」。"
+    }
+  ],
+  known: [
+    { type: "root", text: "hyph", cn: "我" },
+    { type: "suffix", text: "ae", cn: "无限 / 无尽" },
+    { type: "suffix", text: "esh", cn: "主语" },
+    { type: "suffix", text: "or", cn: "宾语" },
+    { type: "suffix", text: "an", cn: "否定" }
+  ],
+  pairs: [
+    {
+      devil: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "dun", type: "root", audio: "audio/words/dun.mp3" },
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "um", type: "suffix", audio: "audio/words/um.mp3" },
+        { text: "zeth", type: "root", audio: "audio/words/zeth.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我们给予我们存在"
+    },
+    {
+      devil: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "dun", type: "root", audio: "audio/words/dun.mp3" },
+        { text: "brun", type: "root", audio: "audio/words/brun.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "um", type: "suffix", audio: "audio/words/um.mp3" },
+        { text: "mor", type: "root", audio: "audio/words/mor.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我们给予敌人死亡"
+    },
+    {
+      devil: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "mor", type: "root", audio: "audio/words/mor.mp3" },
+        { text: "an", type: "suffix", audio: "audio/words/an.mp3" }
+      ],
+      cn: "我们不死"
+    }
+  ],
+  question: "推断下面五个词的含义。",
+  answers: [
+    { word: "-um", accepts: ["与格", "给", "对", "向", "给予对象", "接收者", "给谁", "对谁", "与格标记", "对象（给予）", "给的对象"], meaning: "与格" },
+    { word: "dun", accepts: ["给予", "给", "赐予", "赠予", "交给", "送给"], meaning: "给予" },
+    { word: "zeth", accepts: ["存在", "是", "有", "在", "存有", "实存"], meaning: "存在" },
+    { word: "mor", accepts: ["死", "死亡", "死去", "亡", "逝去", "消逝"], meaning: "死" },
+    { word: "brun", accepts: ["敌人", "仇敌", "敌", "敌方", "敌对者"], meaning: "敌人" }
+  ],
+  learned: [
+    { type: "suffix", word: "um", meaning: "与格" },
+    { type: "root", word: "dun", meaning: "给予" },
+    { type: "root", word: "zeth", meaning: "存在" },
+    { type: "root", word: "mor", meaning: "死" },
+    { type: "root", word: "brun", meaning: "敌人" }
+  ],
+  reveal: "三句话。\n\n我们给予我们存在。\n我们给予敌人死亡。\n我们不死。\n\n没有造物主。存在是自己给自己的。\n\n魔鬼语里没有「活」这个词。只有「存在」和「死」。\n\n而「我们」，永远站在死的那一边之外。"
+},
+{
+  key: "K10",
+  label: 10,
+  kind: "comm",
+  title: "第二次来电",
+  scene: "电话铃声再次响起。\n\n你接起来。\n\n对面不再是平静的。它在喊。",
+  callerLines: [
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "dun", type: "root", audio: "audio/words/dun.mp3" },
+        { text: "brun", type: "root", audio: "audio/words/brun.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "um", type: "suffix", audio: "audio/words/um.mp3" },
+        { text: "mor", type: "root", audio: "audio/words/mor.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我们给予敌人死亡！"
+    },
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "dun", type: "root", audio: "audio/words/dun.mp3" },
+        { text: "Sela", type: "root", audio: "audio/words/sela.mp3" },
+        { text: "um", type: "suffix", audio: "audio/words/um.mp3" },
+        { text: "mor", type: "root", audio: "audio/words/mor.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我们给予塞拉人死亡！",
+      highlight: true
+    },
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "dun", type: "root", audio: "audio/words/dun.mp3" },
+        { text: "gat", type: "root", audio: "audio/words/gat.mp3" },
+        { text: "um", type: "suffix", audio: "audio/words/um.mp3" },
+        { text: "mor", type: "root", audio: "audio/words/mor.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我给予你死亡！",
+      highlight: true
+    }
+  ],
+  callerAudio: "audio/10-caller.mp3",
+  stage1Question: "你要怎么回答？",
+  stage1Accepts: [
+    "sela-an", "不是塞拉人", "我不是塞拉人", "我不是塞拉",
+    "不是塞拉", "塞拉安", "selaan", "我不是席拉人"
+  ],
+  stage2Scene: "对面沉默了一会儿。\n\n然后，它的声音平息下来。\n\n什么东西，直接出现在你的视网膜上。\n\n不是声音。是数字。",
+  stage2Freq: "66.6",
+  stage2Question: "输入你看到的频段。",
+  stage2Accepts: ["66.6", "66.6MHz", "66.6mhz", "66.6 MHz", "66.6兆", "66.6兆赫", "666", "66.6兆赫兹", "66.6兆赫兹"],
+  reveal: "你调到 66.6。\n\n信号从这一头，转向了另一头。"
+},
+{
+  key: "K11",
+  label: 11,
+  kind: "broadcast",
+  title: "广播",
+  scene: "66.6 MHz。\n\n信号很稳。\n\n一个声音开始播放。它不像之前那样断断续续——这是一段完整的广播。\n\n像节目。像教义。像宣言。",
+  audios: [
+    {
+      id: "main",
+      label: "▶ 播放广播",
+      file: "audio/11-broadcast.mp3",
+      note: "十句话。你认识的每一个词都在里面。"
+    }
+  ],
+  lines: [
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" },
+        { text: "ka", type: "suffix", audio: "audio/words/ka.mp3" }
+      ],
+      cn: "我们现在说话。",
+      accepts: [
+        "我们现在说话", "我们现在说", "我们正在说话", "我们正在说",
+        "我们现在正在说话", "我们正在讲话", "我们现在讲话"
+      ]
+    },
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "zeth", type: "root", audio: "audio/words/zeth.mp3" },
+        { text: "ka", type: "suffix", audio: "audio/words/ka.mp3" }
+      ],
+      cn: "我们现在存在。",
+      accepts: [
+        "我们现在存在", "我们存在", "我们现在存在着", "我们正在存在",
+        "我们此刻存在", "我们现在是"
+      ]
+    },
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "dun", type: "root", audio: "audio/words/dun.mp3" },
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "um", type: "suffix", audio: "audio/words/um.mp3" },
+        { text: "zeth", type: "root", audio: "audio/words/zeth.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我们给予我们自己存在。",
+      accepts: [
+        "我们给予我们自己存在", "我们给予我们存在", "我们给自己存在",
+        "我们赋予自己存在", "我们给予自己存在", "我们给自己以存在"
+      ]
+    },
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "mor", type: "root", audio: "audio/words/mor.mp3" },
+        { text: "an", type: "suffix", audio: "audio/words/an.mp3" }
+      ],
+      cn: "我们不死。",
+      accepts: [
+        "我们不死", "我们不会死", "我们不会死亡", "我们没有死",
+        "我们不死亡", "我们将不死", "我们并不会死"
+      ]
+    },
+    {
+      parts: [
+        { text: "brun", type: "root", audio: "audio/words/brun.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "zeth", type: "root", audio: "audio/words/zeth.mp3" },
+        { text: "tu", type: "suffix", audio: "audio/words/tu.mp3" }
+      ],
+      cn: "敌人曾存在。",
+      accepts: [
+        "敌人曾存在", "敌人曾经存在", "敌人存在过", "敌人曾存在着",
+        "敌人以前存在", "敌人曾经存在着"
+      ]
+    },
+    {
+      parts: [
+        { text: "brun", type: "root", audio: "audio/words/brun.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "rynn", type: "root", audio: "audio/words/rynn.mp3" },
+        { text: "tu", type: "suffix", audio: "audio/words/tu.mp3" },
+        { text: "yamo", type: "root", audio: "audio/words/yamo.mp3" },
+        { text: "um", type: "suffix", audio: "audio/words/um.mp3" }
+      ],
+      cn: "敌人曾前往城堡。",
+      accepts: [
+        "敌人曾前往城堡", "敌人曾经去城堡", "敌人曾到城堡", "敌人去过城堡",
+        "敌人曾经前往城堡", "敌人曾去到城堡", "敌人曾走向城堡", "敌人曾来到城堡"
+      ]
+    },
+    {
+      parts: [
+        { text: "brun", type: "root", audio: "audio/words/brun.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "vor", type: "root", audio: "audio/words/vor.mp3" },
+        { text: "tu", type: "suffix", audio: "audio/words/tu.mp3" },
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "敌人曾看着我们。",
+      accepts: [
+        "敌人曾看着我们", "敌人曾经看着我们", "敌人看过我们",
+        "敌人曾经注视我们", "敌人注视过我们", "敌人曾看着我们这些"
+      ]
+    },
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "dun", type: "root", audio: "audio/words/dun.mp3" },
+        { text: "brun", type: "root", audio: "audio/words/brun.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "um", type: "suffix", audio: "audio/words/um.mp3" },
+        { text: "mor", type: "root", audio: "audio/words/mor.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我们给予敌人死亡。",
+      accepts: [
+        "我们给予敌人死亡", "我们给敌人死亡", "我们赋予敌人死亡",
+        "我们给予敌人以死亡", "我们让敌人死亡", "我们将敌人赐死"
+      ]
+    },
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "dun", type: "root", audio: "audio/words/dun.mp3" },
+        { text: "gat", type: "root", audio: "audio/words/gat.mp3" },
+        { text: "um", type: "suffix", audio: "audio/words/um.mp3" },
+        { text: "kal", type: "root", audio: "audio/words/kal.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我们给予你话语。",
+      accepts: [
+        "我们给予你话语", "我们给你话语", "我们给予你语言", "我们给你语言",
+        "我们给予你言辞", "我们给你声音", "我们给予你声音"
+      ]
+    },
+    {
+      parts: [
+        { text: "hyph", type: "root", audio: "audio/words/hyph.mp3" },
+        { text: "ae", type: "suffix", audio: "audio/words/ae.mp3" },
+        { text: "esh", type: "suffix", audio: "audio/words/esh.mp3" },
+        { text: "vor", type: "root", audio: "audio/words/vor.mp3" },
+        { text: "vo", type: "suffix", audio: "audio/words/vo.mp3" },
+        { text: "gat", type: "root", audio: "audio/words/gat.mp3" },
+        { text: "or", type: "suffix", audio: "audio/words/or.mp3" }
+      ],
+      cn: "我们将看着你。",
+      accepts: [
+        "我们将看着你", "我们会看着你", "我们将注视你", "我们会注视你",
+        "我们将看着你这个人", "我们以后会看着你", "我们将一直看着你"
+      ]
+    }
+  ],
+  question: "逐句翻译这段广播。",
+  reveal: "你读完了整段广播。\n\n前三句在宣告自己的存在。\n中间三句在描述敌人的过去。\n后三句在宣判敌人的结局。\n\n而最后一句——\n\n我们将看着你。\n\n广播结束了。但你知道，这句不是宣言。\n\n这是通知。"
+},
+{
+  key: "K12",
+  label: 12,
+  kind: "reply",
+  title: "回话",
+  scene: "广播结束了。\n\n信号安静了几秒。\n\n然后，对面开口了。\n\n不是陈述。是问题。\n\n它在等你回答。",
+  rounds: [
+    {
+      caller: {
+        text: "gat-esh kal-il",
+        cn: "你要说话吗？",
+        audio: "audio/12-q1.mp3"
+      },
+      options: [
+        { text: "hyph-esh kal-tu", cn: "我曾说话。", correct: false },
+        { text: "hyph-esh kal-vo", cn: "我将说话。", correct: true },
+        { text: "hyph-esh kal-an", cn: "我不说话。", correct: false }
+      ]
+    },
+    {
+      caller: {
+        text: "gat-esh zeth-ka-il",
+        cn: "你现在存在吗？",
+        audio: "audio/12-q2.mp3"
+      },
+      options: [
+        { text: "hyph-esh zeth-an", cn: "我不存在。", correct: false },
+        { text: "hyph-esh zeth-tu", cn: "我曾存在。", correct: false },
+        { text: "hyph-esh zeth-ka", cn: "我现在存在。", correct: true }
+      ]
+    },
+    {
+      caller: {
+        text: "gat-esh vor-vo-il hyph-ae-or",
+        cn: "你将看着我们吗？",
+        audio: "audio/12-q3.mp3"
+      },
+      options: [
+        { text: "hyph-esh vor-an gat-ae-or", cn: "我不看着你们。", correct: false },
+        { text: "hyph-esh vor-tu gat-ae-or", cn: "我曾看着你们。", correct: false },
+        { text: "hyph-esh vor-vo gat-ae-or", cn: "我将看着你们。", correct: true }
+      ]
+    }
+  ],
+  reveal: "你回话了。\n\n用他们的语言，用他们的尾巴。\n\n信号安静了很久。\n\n然后，频率跳了一下。\n\n一个新的数字浮现在收音机的屏幕上。"
+},
+{
+  key: "K13",
+  label: 13,
+  kind: "dialogue",
+  title: "回应",
+  scene: "信号安静了很久。\n\n然后，对面开口了。\n\n它说的不是短句。是一整段话。\n\n你只能听懂几个词，但整段话的意思，不知道为什么，就那么浮上来了。",
+  callerSpeech: [
+    "你们曾来到这座塔。",
+    "火会说话。",
+    "但你们听不见。",
+    "你们会死，而我们会看着。"
+  ],
+  callerSpeechStyled: [
+    "你们 <span class=\"dc dc-root\">hyph-ae</span> 曾来到这座塔 <span class=\"dc dc-root\">yamo</span>。",
+    "火 <span class=\"dc dc-root\">thok</span> 会说话 <span class=\"dc dc-root\">kal</span>。",
+    "但你们听不见。",
+    "你们会死 <span class=\"dc dc-root\">mor</span>，而我们会看着 <span class=\"dc dc-root\">vor</span>。"
+  ],
+  question: "你是谁？",
+  questionStyled: "你是谁 <span class=\"dc\">gat-esh</span>？",
+  keywordOrder: ["vai va zo", "Sela", "brun", "shen", "hyph", "zeth"],
+  keywordReplies: {
+    "vai va zo": {
+      silence: true,
+      cyull: true
+    },
+    "Sela": {
+      reply: "……",
+      note: "对面沉默了很长时间。长到你以为它已经挂断。",
+      after: "你不是。"
+    },
+    "brun": {
+      reply: "你承认了。",
+      note: "声音里没有愤怒。只有一种奇异的满足。"
+    },
+    "shen": {
+      reply: "人。你们总是说这个词。",
+      note: "像是在回忆什么。"
+    },
+    "hyph": {
+      reply: "我。你们只会说这一个词。",
+      note: "这句话之后，它停了很久。"
+    },
+    "zeth": {
+      reply: "存在。你确定吗？",
+      note: "它不是真的在问。"
+    }
+  },
+  defaultReply: {
+    reply: "你说的，我不明白。",
+    note: "它没有追问。"
+  },
+  farewell: "记住。你们会被记住的。",
+  farewellStyled: "记住 <span class=\"dc dc-root\">kal</span>。你们会被记住的。",
+  reveal: "信号跳了一下。\n\n一个新的频率浮现在收音机的屏幕上。\n\n77.7 已经过去了。66.6 也已经过去了。\n\n现在是 33.3。"
+},
+{
+  key: "K14",
+  label: 14,
+  kind: "essay",
+  title: "写下",
+  scene: "信号没有跳转。\n\n对面安静着。\n\n像是在等你写点什么。\n\n你有五个词可以用了。把你想说的写下来。\n\n用任何语言。用任何方式。只要把它们放进去。",
+  topics: [
+    { word: "shen", cn: "人" },
+    { word: "thok", cn: "火" },
+    { word: "mel", cn: "夜" },
+    { word: "mor", cn: "死" },
+    { word: "brun", cn: "敌人" }
+  ],
+  minLength: 20,
+  question: "写一段话。",
+  placeholder: "写点什么。用任何语言，只要包含那五个词。",
+  reveal: "你把这段话，交了出去。\n\n信号安静了一会儿。\n\n然后，跳到了 33.3。"
+},
+{
+  key: "K15",
+  label: 15,
+  kind: "temptation",
+  title: "诱惑",
+  scene: "信号稳定下来。\n\n对面开始说话。\n\n这一次，它说得很慢，像是怕你听漏。",
+  monologue: [
+    "你想知道我们是谁。",
+    "我们比你们的塔更古老。当你们还在洞穴里刻下第一个符号的时候，我们就已经在说话了。这是真的。",
+    "但——我们不是你们的敌人。",
+    "我们从未主动寻找过你们。是你们先来到我们的频率上的。是你们先调到了这里。",
+    "你们叫我们魔鬼。",
+    "我们不介意。名字是你们给的，我们不需要名字。我们存在，这就够了。<span class=\"dc\">zeth</span> 就是一切。",
+    "但我们不恨你们。恨是有限的。而我们无限。<span class=\"dc\">hyph-ae</span> 不会恨。",
+    "你想留下。",
+    "我听出来了。你在犹豫。你在听广播的时候，没有关掉它。你调到了 66.6。你对着电话说了话。你写下了那段话。",
+    "你已经开始属于我们了。",
+    "我们可以教你更多。",
+    "我们可以告诉你 <span class=\"dc dc-root\">thok</span> 为什么说话，<span class=\"dc dc-root\">mel</span> 为什么存在，<span class=\"dc dc-root\">brun</span> 从哪里来。我们可以告诉你那扇门后面是什么。",
+    "你只需要说一句话。",
+    "说吧。",
+    "说出你愿意。",
+    "我会听见的。<span class=\"dc\">hyph-ae</span> 一直听着。"
+  ],
+  choiceText: "我 愿 意",
+  memoryPrompt: "你可能见过我，也可能没见过我。\n你有能力反抗。\n还记得吗？你在第一次通讯时的回答。",
+  reveal: "信号跳到 33.3。"
+},
+{
+  key: "K16",
+  label: 16,
+  kind: "finale",
+  title: "最后一页",
+  scene: "信号没有跳。\n\n对面安静了很久。\n\n然后它说话了。",
+  monologue: [
+    "你写的很好。",
+    "来帮我们写一些其他东西吧。"
+  ],
+  choiceTexts: {
+    write: "写",
+    refuse: "不写"
+  },
+  reveal: ""
+},
+];
+
+state.levels = LEVELS;
+
+/* =========================================================
+   存档
+   ========================================================= */
+function save() {
+  try {
+    const lv = state.levels[state.level];
+    localStorage.setItem("freq_save", JSON.stringify({
+      level: state.level,
+      key: lv ? lv.key : null,
+      roots: state.roots,
+      suffixes: state.suffixes
+    }));
+  } catch (e) {}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem("freq_save");
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (Array.isArray(d.roots)) state.roots = d.roots;
+    if (Array.isArray(d.suffixes)) state.suffixes = d.suffixes;
+    if (typeof d.level === "number" && d.level >= 0 && d.level < state.levels.length) {
+      state.level = d.level;
+    }
+    if (d.key) {
+      const idx = state.levels.findIndex(l => l.key === d.key);
+      if (idx >= 0) state.level = idx;
+    }
+  } catch (e) {}
+}
+
+/* =========================================================
+   工具
+   ========================================================= */
+function norm(s) {
+  return (s || "")
+    .replace(/[\s，。！？、,.!?；;：:"'“”‘’（）()《》「」『』…—\-]/g, "")
+    .toLowerCase();
+}
+
+/* 根据文本生成稳定波形 */
+function generateBars(text, count) {
+  let seed = 0;
+  for (let i = 0; i < text.length; i++) seed += text.charCodeAt(i) * (i + 1);
+  const bars = [];
+  for (let i = 0; i < count; i++) {
+    seed = (seed * 9301 + 49297) % 233280;
+    const h = 6 + (seed / 233280) * 22;
+    bars.push(Math.round(h));
+  }
+  return bars;
+}
+
+/* 播放音频（优雅降级） */
+function playAudio(file, onStateChange) {
+  let audio;
+  try {
+    audio = new Audio(file);
+  } catch (e) {
+    showToast("（音频无法播放）");
+    if (onStateChange) onStateChange(false);
+    return;
+  }
+
+  audio.onerror = () => {
+    showToast("（此音频尚未录制）");
+    if (onStateChange) onStateChange(false);
+  };
+
+  audio.onended = () => {
+    if (onStateChange) onStateChange(false);
+  };
+
+  const p = audio.play();
+  if (p && p.catch) {
+    p.catch(() => {
+      showToast("（此音频尚未录制）");
+      if (onStateChange) onStateChange(false);
+    });
+  }
+
+  if (onStateChange) onStateChange(true);
+}
+
+function showToast(text) {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+/* =========================================================
+   渲染主流程
+   ========================================================= */
+function render() {
+  if (state.level >= state.levels.length) return renderEnding();
+  const lv = state.levels[state.level];
+
+  // 通讯关进入新关卡时重置阶段
+  if (state.lastCommKey !== lv.key) {
+    state.lastCommKey = lv.key;
+    state.commStage = 1;
+  }
+
+  $("#progress").textContent = `第 ${lv.label} 关`;
+  $("#clueTitle").textContent = lv.title;
+  $("#clueText").textContent = lv.scene;
+
+// 频率显示：随剧情推进切换
+  const freqEl = $("#freqDisplay");
+  if (freqEl) {
+    if (state.level >= 10) {
+      freqEl.innerHTML = '<span class="live"></span>66.6 MHz · 信号锁定中';
+    } else if (state.level >= 5) {
+      freqEl.innerHTML = '<span class="live"></span>77.7 MHz · 信号重连中';
+    } else {
+      freqEl.innerHTML = '<span class="live"></span>88.8 MHz · 信号捕捉中';
+    }
+  }
+
+  renderLexicon();
+  renderAudio(lv);
+
+  if (lv.kind === "compare") {
+    renderCompare(lv);
+  } else if (lv.kind === "comm") {
+    renderComm(lv);
+  } else if (lv.kind === "timeline") {
+    renderTimeline(lv);
+  } else if (lv.kind === "broadcast") {
+    renderBroadcast(lv);
+  } else if (lv.kind === "reply") {
+    renderReply(lv);
+  } else if (lv.kind === "dialogue") {
+    renderDialogue(lv);
+  } else if (lv.kind === "essay") {
+    renderEssay(lv);
+  } else if (lv.kind === "temptation") {
+    renderTemptation(lv);
+  } else if (lv.kind === "finale") {
+    renderFinale(lv);
+  } else {
+    renderBlocks(lv);
+    renderPuzzle(lv);
+  }
+}
+
+/* ---------- 记录本 ---------- */
+function renderLexicon() {
+  const rootBox = $("#rootList");
+  const suffixBox = $("#suffixList");
+
+  if (state.roots.length === 0) {
+    rootBox.innerHTML = `<div class="empty">尚未记录任何词根。</div>`;
+  } else {
+    rootBox.innerHTML = state.roots.map(w => `
+      <div class="lex-item">
+        <span class="sela">${w}</span>
+        <span class="cn">${ALL_ROOTS[w] || "?"}</span>
+      </div>
+    `).join("");
+  }
+
+  if (state.suffixes.length === 0) {
+    suffixBox.innerHTML = `<div class="empty">尚未记录任何后缀。</div>`;
+  } else {
+    suffixBox.innerHTML = state.suffixes.map(w => `
+      <div class="lex-item suffix">
+        <span class="sela">-${w}</span>
+        <span class="cn">${ALL_SUFFIXES[w] || "?"}</span>
+      </div>
+    `).join("");
+  }
+}
+
+/* ---------- 音频按钮 ---------- */
+function renderAudio(lv) {
+  const controls = $("#audioControls");
+  const note = $("#audioNote");
+  controls.innerHTML = "";
+  note.textContent = "";
+
+  if (!lv.audios || !lv.audios.length) return;
+
+  lv.audios.forEach((a, i) => {
+    const btn = document.createElement("button");
+    btn.className = "audio-btn" + (i > 0 ? " hint" : "");
+    btn.innerHTML = `<span class="icon">●</span>${a.label}`;
+
+  btn.onclick = () => {
+    document.querySelectorAll(".audio-btn").forEach(b => b.classList.remove("playing"));
+    btn.classList.add("playing");
+
+  // 每次点击都先隐藏内心独白
+    const iv = $("#innerVoice");
+    if (iv) {
+      iv.classList.remove("show");
+      iv.textContent = "";
+    }
+
+    playAudio(a.file, (playing) => {
+      if (!playing) {
+        btn.classList.remove("playing");
+
+      // 主音频结束后，延迟显示内心独白
+        if (a.id === "main" && lv.innerVoice) {
+          setTimeout(() => {
+            const iv2 = $("#innerVoice");
+            if (iv2) {
+              iv2.textContent = lv.innerVoice;
+              iv2.classList.add("show");
+            }
+          }, 1200);
+        }
+      }
+    });
+
+    if (a.note) note.textContent = a.note;
+  };
+
+    controls.appendChild(btn);
+  });
+}
+
+/* ---------- 频谱块 ---------- */
+function renderBlocks(lv) {
+  const box = $("#spectrum");
+  box.innerHTML = "";
+  box.classList.remove("compare-mode");
+
+  if (!lv.blocks || !lv.blocks.length) return;
+
+  lv.blocks.forEach(block => {
+    const el = document.createElement("div");
+    el.className = "spec-block " + (block.type || "root");
+
+    const bars = generateBars(block.text, 14);
+    const waveHTML = bars.map(h => `<span style="height:${h}px"></span>`).join("");
+
+    el.innerHTML = `
+      <div class="spec-wave">${waveHTML}</div>
+      <div class="spec-text">${block.text}</div>
+      <div class="spec-label">${block.type === "suffix" ? "后缀" : "词根"}</div>
+    `;
+
+    el.onclick = () => {
+      if (!block.audio) return;
+      document.querySelectorAll(".spec-block").forEach(b => b.classList.remove("playing"));
+      el.classList.add("playing");
+      playAudio(block.audio, (playing) => {
+        if (!playing) el.classList.remove("playing");
+      });
+    };
+
+    box.appendChild(el);
+  });
+}
+
+/* ---------- 问题区 ---------- */
+function renderPuzzle(lv) {
+  const p = $("#puzzle");
+
+  p.innerHTML = `
+    <div class="question-row">
+      <div class="question-label">${lv.question}</div>
+      <div class="input-row">
+        <input type="text" id="answer" placeholder="输入你的解读…" autocomplete="off" spellcheck="false">
+        <button class="btn primary" id="submit">提交</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  const input = $("#answer");
+  const submit = () => {
+    const v = norm(input.value);
+    if (!v) return;
+    if (lv.accepts.some(a => norm(a) === v)) {
+      $("#feedback").className = "feedback good";
+      $("#feedback").textContent = "正确。";
+      setTimeout(() => finishLevel(lv), 400);
+    } else {
+      $("#feedback").className = "feedback";
+      $("#feedback").textContent = "不对。再听一次，或者看看频谱。";
+      input.classList.add("shake");
+      setTimeout(() => input.classList.remove("shake"), 400);
+    }
+  };
+
+  $("#submit").onclick = submit;
+  input.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  input.focus();
+}
+/* ---------- 对照关 ---------- */
+function renderCompare(lv) {
+  // 频谱区
+  const spec = $("#spectrum");
+  spec.innerHTML = "";
+  spec.classList.add("compare-mode");
+
+  // 已知词栏
+  if (lv.known && lv.known.length) {
+    const knownBox = document.createElement("div");
+    knownBox.className = "known-bar";
+    knownBox.innerHTML = `<span class="known-label">已 知</span>` +
+      lv.known.map(k => {
+        const cls = k.type === "suffix" ? "suffix" : "root";
+        const text = k.type === "suffix" ? "-" + k.text.replace(/^-/, "") : k.text;
+        return `<span class="known-item ${cls}"><span class="sela">${text}</span><span class="cn">${k.cn}</span></span>`;
+      }).join("");
+    spec.appendChild(knownBox);
+  }
+
+  // 三组对照
+  lv.pairs.forEach(pair => {
+    const row = document.createElement("div");
+    row.className = "compare-row";
+
+    const left = document.createElement("div");
+    left.className = "compare-left";
+
+    pair.devil.forEach(b => {
+      const block = document.createElement("div");
+      block.className = "spec-block " + (b.type || "root");
+      const bars = generateBars(b.text, 12);
+      const waveHTML = bars.map(h => `<span style="height:${h}px"></span>`).join("");
+      block.innerHTML = `
+        <div class="spec-wave">${waveHTML}</div>
+        <div class="spec-text">${b.text}</div>
+      `;
+      block.onclick = () => {
+        if (!b.audio) return;
+        document.querySelectorAll(".spec-block").forEach(x => x.classList.remove("playing"));
+        block.classList.add("playing");
+        playAudio(b.audio, (playing) => { if (!playing) block.classList.remove("playing"); });
+      };
+      left.appendChild(block);
+    });
+
+    const right = document.createElement("div");
+    right.className = "compare-right";
+    right.textContent = pair.cn;
+
+    row.appendChild(left);
+    row.appendChild(right);
+    spec.appendChild(row);
+  });
+
+  // 问题区
+  const p = $("#puzzle");
+  p.innerHTML = `
+    <div class="question-row">
+      <div class="question-label">${lv.question}</div>
+      <div class="compare-answers" id="compareAnswers"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  const container = $("#compareAnswers");
+  const done = lv.answers.map(() => false);
+
+  lv.answers.forEach((item, i) => {
+    const row = document.createElement("div");
+    row.className = "compare-answer-row";
+
+    const label = document.createElement("span");
+    label.className = "compare-answer-label";
+    label.textContent = item.word;
+    row.appendChild(label);
+
+    const eq = document.createElement("span");
+    eq.className = "compare-answer-eq";
+    eq.textContent = "=";
+    row.appendChild(eq);
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "compare-answer-input";
+    input.placeholder = "输入含义…";
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    row.appendChild(input);
+
+    const btn = document.createElement("button");
+    btn.className = "btn primary compare-answer-btn";
+    btn.textContent = "确认";
+    row.appendChild(btn);
+
+    const fb = document.createElement("span");
+    fb.className = "compare-answer-fb";
+    row.appendChild(fb);
+
+    const check = () => {
+      if (done[i]) return;
+      const v = norm(input.value);
+      if (!v) return;
+      if (item.accepts.some(a => norm(a) === v)) {
+        done[i] = true;
+        input.value = item.meaning;
+        input.disabled = true;
+        btn.disabled = true;
+        btn.textContent = "✓";
+        fb.className = "compare-answer-fb good";
+        fb.textContent = "✓";
+        if (done.every(Boolean)) {
+          $("#feedback").className = "feedback good";
+          $("#feedback").textContent = "全部正确。";
+          setTimeout(() => finishLevel(lv), 700);
+        }
+      } else {
+        fb.className = "compare-answer-fb";
+        fb.textContent = "不对";
+        input.classList.add("shake");
+        setTimeout(() => input.classList.remove("shake"), 400);
+      }
+    };
+
+    btn.onclick = check;
+    input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+
+    container.appendChild(row);
+  });
+
+  const first = container.querySelector("input:not([disabled])");
+  if (first) first.focus();
+}
+/* ---------- 通讯关 ---------- */
+function renderComm(lv) {
+  if (state.commStage === 1) renderCommStage1(lv);
+  else if (state.commStage === 2) renderCommStage2(lv);
+}
+
+/* 阶段 1：对面说 gat-esh kal，玩家回应 */
+function renderCommStage1(lv) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+
+  // 渲染来电内容
+  if (lv.callerLines && lv.callerLines.length) {
+    // K10 风格：多行
+    lv.callerLines.forEach((line, i) => {
+      const row = document.createElement("div");
+      row.className = "compare-row";
+      row.style.opacity = "0";
+      row.style.animation = `fadeIn 0.6s ${0.3 + i * 0.7}s forwards`;
+
+      const left = document.createElement("div");
+      left.className = "compare-left";
+
+      line.parts.forEach(b => {
+        const block = document.createElement("div");
+        block.className = "spec-block " + (b.type || "root");
+        const bars = generateBars(b.text, 12);
+        block.innerHTML = `
+          <div class="spec-wave">${bars.map(h => `<span style="height:${h}px"></span>`).join("")}</div>
+          <div class="spec-text">${b.text}</div>
+        `;
+        block.onclick = () => {
+          if (!b.audio) return;
+          document.querySelectorAll(".spec-block").forEach(x => x.classList.remove("playing"));
+          block.classList.add("playing");
+          playAudio(b.audio, (playing) => { if (!playing) block.classList.remove("playing"); });
+        };
+        left.appendChild(block);
+      });
+
+      const right = document.createElement("div");
+      right.className = "compare-right";
+      right.innerHTML = `<div class="caller-cn${line.highlight ? " highlight" : ""}">${line.cn}</div>`;
+
+      row.appendChild(left);
+      row.appendChild(right);
+      spec.appendChild(row);
+    });
+  } else if (lv.callerWords && lv.callerWords.length) {
+    // K05 风格：单行
+    const row = document.createElement("div");
+    row.className = "compare-row";
+
+    const left = document.createElement("div");
+    left.className = "compare-left";
+
+    lv.callerWords.forEach(b => {
+      const block = document.createElement("div");
+      block.className = "spec-block " + (b.type || "root");
+      const bars = generateBars(b.text, 12);
+      block.innerHTML = `
+        <div class="spec-wave">${bars.map(h => `<span style="height:${h}px"></span>`).join("")}</div>
+        <div class="spec-text">${b.text}</div>
+      `;
+      block.onclick = () => {
+        if (!b.audio) return;
+        document.querySelectorAll(".spec-block").forEach(x => x.classList.remove("playing"));
+        block.classList.add("playing");
+        playAudio(b.audio, (playing) => { if (!playing) block.classList.remove("playing"); });
+      };
+      left.appendChild(block);
+    });
+
+    const right = document.createElement("div");
+    right.className = "compare-right";
+    right.innerHTML = `<div class="caller-cn">${lv.callerCn}</div>`;
+
+    row.appendChild(left);
+    row.appendChild(right);
+    spec.appendChild(row);
+  }
+
+  // 整段重听按钮
+  if (lv.callerAudio) {
+    const btn = document.createElement("button");
+    btn.className = "audio-btn";
+    btn.innerHTML = `<span class="icon">●</span>▶ 重听这段声音`;
+    btn.onclick = () => {
+      document.querySelectorAll(".audio-btn").forEach(b => b.classList.remove("playing"));
+      btn.classList.add("playing");
+      playAudio(lv.callerAudio, (playing) => { if (!playing) btn.classList.remove("playing"); });
+    };
+    spec.appendChild(btn);
+  }
+
+  // 谜题区
+  p.innerHTML = `
+    <div class="question-row">
+      <div class="question-label">${lv.stage1Question}</div>
+      <div class="input-row">
+        <input type="text" id="playerInput" placeholder="对着电话说吧…" autocomplete="off" spellcheck="false" maxlength="50">
+        <button class="btn primary" id="sayBtn">说</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  const input = $("#playerInput");
+  const btn = $("#sayBtn");
+
+  const submit = () => {
+    const v = input.value.trim();
+    if (!v) return;
+
+    // 有预期答案时（K10），校验
+    if (lv.stage1Accepts && lv.stage1Accepts.length) {
+      if (lv.stage1Accepts.some(a => norm(a) === norm(v))) {
+        input.disabled = true;
+        btn.disabled = true;
+        $("#feedback").className = "feedback good";
+        $("#feedback").textContent = "对面沉默了。";
+        setTimeout(() => {
+          state.commStage = 2;
+          renderComm(lv);
+        }, 1400);
+      } else {
+        showBloodOverlay();
+        input.disabled = true;
+        btn.disabled = true;
+        $("#feedback").className = "feedback";
+        $("#feedback").textContent = "对面在怒吼。";
+        setTimeout(() => {
+          input.disabled = false;
+          btn.disabled = false;
+          input.value = "";
+          input.focus();
+          $("#feedback").textContent = "";
+        }, 2200);
+      }
+      return;
+    }
+
+    // 无预期答案时（K05），保存任意输入
+    if (typeof isEasterEgg === "function" && isEasterEgg(v)) {
+      showEnemyOverlay();
+      input.disabled = true;
+      btn.disabled = true;
+      setTimeout(() => {
+        input.disabled = false;
+        btn.disabled = false;
+        input.value = "";
+        input.focus();
+      }, 3400);
+      return;
+    }
+
+    state.playerWords = v;
+    try { localStorage.setItem("player_words", v); } catch (e) {}
+    state.commStage = 2;
+    renderComm(lv);
+  };
+
+  btn.onclick = submit;
+  input.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  input.focus();
+}
+
+/* 阶段 2：对面给出频段，玩家输入 */
+function renderCommStage2(lv) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+
+  // 频段音频按钮
+  if (lv.stage2Audio) {
+    const btn = document.createElement("button");
+    btn.className = "audio-btn";
+    btn.innerHTML = `<span class="icon">●</span>▶ 听筒里的声音`;
+    btn.onclick = () => {
+      document.querySelectorAll(".audio-btn").forEach(b => b.classList.remove("playing"));
+      btn.classList.add("playing");
+      playAudio(lv.stage2Audio, (playing) => { if (!playing) btn.classList.remove("playing"); });
+    };
+    spec.appendChild(btn);
+  }
+
+  p.innerHTML = `
+    <div class="question-row">
+      <div class="question-label">${lv.stage2Scene}</div>
+      <div class="freq-display">
+        <span class="freq-value">${lv.stage2Freq || "77.7"}</span>
+        <span class="freq-unit">MHz</span>
+      </div>
+      <div class="question-label" style="margin-top:20px;">${lv.stage2Question}</div>
+      <div class="input-row">
+        <input type="text" id="freqInput" placeholder="输入频段…" autocomplete="off" spellcheck="false">
+        <button class="btn primary" id="freqBtn">调到</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  const input = $("#freqInput");
+  const btn = $("#freqBtn");
+
+  const submit = () => {
+    const v = norm(input.value);
+    if (!v) return;
+    if (lv.stage2Accepts.some(a => norm(a) === v)) {
+      $("#feedback").className = "feedback good";
+      $("#feedback").textContent = "信号接通。";
+      setTimeout(() => finishLevel(lv), 700);
+    } else {
+      $("#feedback").className = "feedback";
+      $("#feedback").textContent = "不对。再听一次。";
+      input.classList.add("shake");
+      setTimeout(() => input.classList.remove("shake"), 400);
+    }
+  };
+
+  btn.onclick = submit;
+  input.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  input.focus();
+}
+
+/* ---------- 彩蛋判定 ---------- */
+function isEasterEgg(text) {
+  const t = text.trim();
+  const lower = t.toLowerCase();
+  return t.includes("塞拉") || t.includes("剑与盾") ||
+         lower.includes("sela") || lower.includes("sword") ||
+         lower.includes("shield");
+}
+
+/* ---------- 敌人覆盖层 ---------- */
+function showEnemyOverlay() {
+  const overlay = document.createElement("div");
+  overlay.className = "enemy-overlay";
+
+  const pieces = [];
+  for (let i = 0; i < 90; i++) {
+    const x = Math.random() * 92;
+    const y = Math.random() * 94;
+    const size = 14 + Math.random() * 32;
+    const rot = (Math.random() - 0.5) * 50;
+    const op = 0.55 + Math.random() * 0.45;
+    pieces.push(`<span style="left:${x}%;top:${y}%;font-size:${size}px;transform:rotate(${rot}deg);opacity:${op}">敌人</span>`);
+  }
+  overlay.innerHTML = pieces.join("");
+  document.body.appendChild(overlay);
+
+  setTimeout(() => {
+    overlay.classList.add("fade-out");
+    setTimeout(() => overlay.remove(), 500);
+  }, 3000);
+}
+
+/* ---------- 血红色遮罩 ---------- */
+function showBloodOverlay() {
+  const overlay = document.createElement("div");
+  overlay.className = "blood-overlay";
+  document.body.appendChild(overlay);
+
+  setTimeout(() => {
+    overlay.classList.add("fade-out");
+    setTimeout(() => overlay.remove(), 500);
+  }, 2000);
+}
+
+/* ---------- 时间轴关 ---------- */
+function renderTimeline(lv) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+  p.innerHTML = "";
+
+  // 当前时间点（默认"现在"）
+  let currentTime = lv.times.find(t => t.id === "now") || lv.times[0];
+  let timeIndex = lv.times.indexOf(currentTime);
+
+  // 时间轴按钮
+  const nav = document.createElement("div");
+  nav.className = "timeline-nav";
+
+  lv.times.forEach((t, i) => {
+    const btn = document.createElement("button");
+    btn.className = "timeline-btn" + (i === timeIndex ? " active" : "");
+    btn.textContent = t.label;
+    btn.onclick = () => {
+      if (i === timeIndex) return;
+      timeIndex = i;
+      currentTime = lv.times[i];
+      nav.querySelectorAll(".timeline-btn").forEach((b, j) => {
+        b.classList.toggle("active", j === i);
+      });
+      renderSentence();
+    };
+    nav.appendChild(btn);
+  });
+
+  spec.appendChild(nav);
+
+  // 句子容器
+  const sentenceBox = document.createElement("div");
+  sentenceBox.className = "timeline-sentence";
+  spec.appendChild(sentenceBox);
+
+  // 音频按钮容器
+  const audioRow = document.createElement("div");
+  audioRow.className = "timeline-audio-row";
+  spec.appendChild(audioRow);
+
+  const renderSentence = () => {
+    sentenceBox.classList.add("fading");
+    setTimeout(() => {
+      sentenceBox.innerHTML = "";
+
+      const addBlock = (b) => {
+        const block = document.createElement("div");
+        block.className = "spec-block " + (b.type || "root");
+        const bars = generateBars(b.text, 12);
+        block.innerHTML = `
+          <div class="spec-wave">${bars.map(h => `<span style="height:${h}px"></span>`).join("")}</div>
+          <div class="spec-text">${b.text}</div>
+        `;
+        block.onclick = () => {
+          if (!b.audio) return;
+          document.querySelectorAll(".spec-block").forEach(x => x.classList.remove("playing"));
+          block.classList.add("playing");
+          playAudio(b.audio, (playing) => { if (!playing) block.classList.remove("playing"); });
+        };
+        sentenceBox.appendChild(block);
+      };
+
+      // 主语
+      lv.subject.forEach(addBlock);
+      // 动词
+      addBlock(lv.verb);
+      // 时态后缀
+      addBlock({
+        text: currentTime.suffix,
+        type: "suffix",
+        audio: currentTime.suffixAudio
+      });
+      // 宾语
+      currentTime.object.forEach(addBlock);
+
+      sentenceBox.classList.remove("fading");
+
+      // 音频按钮
+      audioRow.innerHTML = "";
+      const playBtn = document.createElement("button");
+      playBtn.className = "audio-btn";
+      playBtn.innerHTML = `<span class="icon">●</span>▶ 播放整句`;
+      playBtn.onclick = () => {
+        document.querySelectorAll(".audio-btn").forEach(b => b.classList.remove("playing"));
+        playBtn.classList.add("playing");
+        playAudio(currentTime.audio, (playing) => { if (!playing) playBtn.classList.remove("playing"); });
+      };
+      audioRow.appendChild(playBtn);
+
+    }, 200);
+  };
+
+  renderSentence();
+
+  // 谜题区
+  p.innerHTML = `
+    <div class="question-row">
+      <div class="question-label">${lv.question}</div>
+      <div class="compare-answers" id="compareAnswers"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  const container = $("#compareAnswers");
+  const done = lv.answers.map(() => false);
+
+  lv.answers.forEach((item, i) => {
+    const row = document.createElement("div");
+    row.className = "compare-answer-row";
+
+    const label = document.createElement("span");
+    label.className = "compare-answer-label";
+    label.textContent = item.word;
+    row.appendChild(label);
+
+    const eq = document.createElement("span");
+    eq.className = "compare-answer-eq";
+    eq.textContent = "=";
+    row.appendChild(eq);
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "compare-answer-input";
+    input.placeholder = "输入含义…";
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    row.appendChild(input);
+
+    const btn = document.createElement("button");
+    btn.className = "btn primary compare-answer-btn";
+    btn.textContent = "确认";
+    row.appendChild(btn);
+
+    const fb = document.createElement("span");
+    fb.className = "compare-answer-fb";
+    row.appendChild(fb);
+
+    const check = () => {
+      if (done[i]) return;
+      const v = norm(input.value);
+      if (!v) return;
+      if (item.accepts.some(a => norm(a) === v)) {
+        done[i] = true;
+        input.value = item.meaning;
+        input.disabled = true;
+        btn.disabled = true;
+        btn.textContent = "✓";
+        fb.className = "compare-answer-fb good";
+        fb.textContent = "✓";
+        if (done.every(Boolean)) {
+          $("#feedback").className = "feedback good";
+          $("#feedback").textContent = "全部正确。";
+          setTimeout(() => finishLevel(lv), 700);
+        }
+      } else {
+        fb.className = "compare-answer-fb";
+        fb.textContent = "不对";
+        input.classList.add("shake");
+        setTimeout(() => input.classList.remove("shake"), 400);
+      }
+    };
+
+    btn.onclick = check;
+    input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+
+    container.appendChild(row);
+  });
+
+  const first = container.querySelector("input:not([disabled])");
+  if (first) first.focus();
+}
+
+/* ---------- 广播关 ---------- */
+function renderBroadcast(lv) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+  p.innerHTML = "";
+
+  // 音频按钮
+  if (lv.audios) {
+    const audioRow = document.createElement("div");
+    audioRow.className = "timeline-audio-row";
+    lv.audios.forEach((a, i) => {
+      const btn = document.createElement("button");
+      btn.className = "audio-btn" + (i > 0 ? " hint" : "");
+      btn.innerHTML = `<span class="icon">●</span>${a.label}`;
+      btn.onclick = () => {
+        document.querySelectorAll(".audio-btn").forEach(b => b.classList.remove("playing"));
+        btn.classList.add("playing");
+        playAudio(a.file, (playing) => { if (!playing) btn.classList.remove("playing"); });
+      };
+      audioRow.appendChild(btn);
+    });
+    spec.appendChild(audioRow);
+  }
+
+  // 十句频谱
+  lv.lines.forEach((line, i) => {
+    const row = document.createElement("div");
+    row.className = "broadcast-row";
+
+    const num = document.createElement("div");
+    num.className = "broadcast-num";
+    num.textContent = String(i + 1).padStart(2, "0");
+    row.appendChild(num);
+
+    const left = document.createElement("div");
+    left.className = "compare-left";
+
+    line.parts.forEach(b => {
+      const block = document.createElement("div");
+      block.className = "spec-block " + (b.type || "root");
+      const bars = generateBars(b.text, 12);
+      block.innerHTML = `
+        <div class="spec-wave">${bars.map(h => `<span style="height:${h}px"></span>`).join("")}</div>
+        <div class="spec-text">${b.text}</div>
+      `;
+      block.onclick = () => {
+        if (!b.audio) return;
+        document.querySelectorAll(".spec-block").forEach(x => x.classList.remove("playing"));
+        block.classList.add("playing");
+        playAudio(b.audio, (playing) => { if (!playing) block.classList.remove("playing"); });
+      };
+      left.appendChild(block);
+    });
+
+    row.appendChild(left);
+    spec.appendChild(row);
+  });
+
+  // 谜题区
+  p.innerHTML = `
+    <div class="broadcast-progress" id="broadcastProgress">0 / ${lv.lines.length} 已译出</div>
+    <div class="question-row">
+      <div class="question-label">${lv.question}</div>
+      <div class="compare-answers" id="compareAnswers"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  const container = $("#compareAnswers");
+  const progressEl = $("#broadcastProgress");
+  const done = lv.lines.map(() => false);
+
+  const updateProgress = () => {
+    const count = done.filter(Boolean).length;
+    progressEl.innerHTML = count === done.length
+      ? `<span class="done">全部译出 · ${count} / ${lv.lines.length}</span>`
+      : `${count} / ${lv.lines.length} 已译出`;
+  };
+
+  lv.lines.forEach((line, i) => {
+    const row = document.createElement("div");
+    row.className = "broadcast-answer-row";
+
+    const num = document.createElement("span");
+    num.className = "broadcast-answer-num";
+    num.textContent = String(i + 1).padStart(2, "0");
+    row.appendChild(num);
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "broadcast-answer-input";
+    input.placeholder = "翻译这一句…";
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    row.appendChild(input);
+
+    const btn = document.createElement("button");
+    btn.className = "btn primary broadcast-answer-btn";
+    btn.textContent = "确认";
+    row.appendChild(btn);
+
+    const fb = document.createElement("span");
+    fb.className = "broadcast-answer-fb";
+    row.appendChild(fb);
+
+    const check = () => {
+      if (done[i]) return;
+      const v = norm(input.value);
+      if (!v) return;
+      if (line.accepts.some(a => norm(a) === v)) {
+        done[i] = true;
+        input.value = line.cn;
+        input.disabled = true;
+        btn.disabled = true;
+        btn.textContent = "✓";
+        fb.className = "broadcast-answer-fb good";
+        fb.textContent = "✓";
+        updateProgress();
+        if (done.every(Boolean)) {
+          $("#feedback").className = "feedback good";
+          $("#feedback").textContent = "全部译出。";
+          setTimeout(() => finishLevel(lv), 900);
+        }
+      } else {
+        fb.className = "broadcast-answer-fb";
+        fb.textContent = "不对";
+        input.classList.add("shake");
+        setTimeout(() => input.classList.remove("shake"), 400);
+      }
+    };
+
+    btn.onclick = check;
+    input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+
+    container.appendChild(row);
+  });
+
+  const first = container.querySelector("input:not([disabled])");
+  if (first) first.focus();
+}
+/* ---------- 回话关 ---------- */
+function renderReply(lv) {
+  // 首次进入本关时初始化
+  if (state.replyKey !== lv.key) {
+    state.replyKey = lv.key;
+    state.replyRound = 0;
+    state.replyResults = [];
+    state.replyAttempt = 1;
+  }
+
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+  p.innerHTML = "";
+
+  // 三轮结束，判断结果
+  if (state.replyRound >= lv.rounds.length) {
+    return checkReplyResult(lv);
+  }
+
+  const round = lv.rounds[state.replyRound];
+  const attemptLabel = state.replyAttempt > 1 ? " · 重来" : "";
+
+  p.innerHTML = `
+    <div class="reply-round-info">第 ${state.replyRound + 1} / ${lv.rounds.length} 轮${attemptLabel}</div>
+    <div class="reply-caller">
+      <div class="reply-caller-label">对 面 说</div>
+      <div class="reply-caller-line">
+        <div class="spec-block root" id="callerBlock">
+          <div class="spec-text">${round.caller.text}</div>
+        </div>
+      </div>
+      <div class="reply-caller-cn">${round.caller.cn}</div>
+    </div>
+    <div class="reply-options" id="replyOptions"></div>
+    <div class="reply-feedback" id="replyFeedback"></div>
+  `;
+
+  // 点击对面那句话，播放音频
+  const callerBlock = $("#callerBlock");
+  if (callerBlock && round.caller.audio) {
+    callerBlock.style.cursor = "pointer";
+    callerBlock.onclick = () => {
+      callerBlock.classList.add("playing");
+      playAudio(round.caller.audio, (playing) => { if (!playing) callerBlock.classList.remove("playing"); });
+    };
+  }
+
+  const optionsBox = $("#replyOptions");
+
+  round.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "reply-option";
+    btn.innerHTML = `
+      <span class="reply-option-label">${String.fromCharCode(65 + i)}</span>
+      <span class="reply-option-text">${opt.text}</span>
+      <span class="reply-option-cn">${opt.cn}</span>
+    `;
+
+    btn.onclick = () => {
+      // 禁用所有选项
+      optionsBox.querySelectorAll(".reply-option").forEach(b => b.classList.add("disabled"));
+
+      if (opt.correct) {
+        btn.classList.add("correct");
+        state.replyResults.push(true);
+        $("#replyFeedback").className = "reply-feedback good";
+        $("#replyFeedback").textContent = "对面接受了。";
+      } else {
+        btn.classList.add("wrong");
+        state.replyResults.push(false);
+        // 高亮正确选项
+        const correctIdx = round.options.findIndex(o => o.correct);
+        if (correctIdx >= 0) {
+          optionsBox.children[correctIdx].classList.add("correct");
+        }
+        $("#replyFeedback").className = "reply-feedback warn";
+        $("#replyFeedback").textContent = "对面没有回应这句。";
+      }
+
+      setTimeout(() => {
+        state.replyRound++;
+        renderReply(lv);
+      }, 1400);
+    };
+
+    optionsBox.appendChild(btn);
+  });
+}
+
+/* ---------- 判断三轮结果 ---------- */
+function checkReplyResult(lv) {
+  const allWrong = state.replyResults.every(r => r === false);
+
+  // 全错：第一次重来
+  if (allWrong && state.replyAttempt === 1) {
+    showReplyInterlude("对面沉默了。\n\n它在等你重新回答。", () => {
+      state.replyRound = 0;
+      state.replyResults = [];
+      state.replyAttempt = 2;
+      renderReply(lv);
+    });
+    return;
+  }
+
+  // 全错：第二次进入隐藏分支
+  if (allWrong && state.replyAttempt === 2) {
+    return showHiddenBranch();
+  }
+
+  // 至少答对一道，正常通过
+  finishLevel(lv);
+}
+
+/* ---------- 中途过场 ---------- */
+function showReplyInterlude(text, cb) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  p.innerHTML = `
+    <div style="text-align:center;padding:60px 20px;animation:fadeIn 1s;">
+      <p style="font-size:15px;line-height:2.2;color:#8a9cb5;letter-spacing:0.1em;white-space:pre-line;">${text}</p>
+    </div>
+  `;
+
+  setTimeout(cb, 2400);
+}
+
+/* =========================================================
+   隐藏分支 · 疯子
+   ========================================================= */
+function showHiddenBranch() {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+  p.innerHTML = "";
+
+  // 阶段 1：对面沉默，然后揭示 cyull
+  const block = document.createElement("div");
+  block.className = "hidden-reveal";
+  block.innerHTML = `
+    <div class="cyull-word">cyull</div>
+    <div class="cyull-cn">疯 子</div>
+    <div class="cyull-sub">你听懂了。你从来不需要被接纳。</div>
+  `;
+  spec.appendChild(block);
+
+  // 同时把 cyull 加入词根本
+  if (!state.roots.includes("cyull")) {
+    state.roots.push("cyull");
+    save();
+    renderLexicon();
+  }
+
+  // 叙事段落
+  const mono = document.createElement("div");
+  mono.className = "hidden-monologue";
+  mono.style.animationDelay = "0.6s";
+  mono.innerHTML = `
+    <p style="opacity:0;animation:fadeIn 1.2s 1s forwards;">三轮。全部否定。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 1.8s forwards;">你不说。你不在。你不看。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 2.6s forwards;">你在拒绝我们。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 3.6s forwards;margin-top:24px;">但你知道魔鬼语怎么称呼拒绝者吗？</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 4.4s forwards;">不是 <span class="em">brun</span>。敌人是<span class="em">对立</span>的人。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 5.2s forwards;">而你不是我们的对立者。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 6s forwards;">你是<span class="em">拒绝一切</span>的人。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 6.8s forwards;margin-top:24px;">
+      <span class="em">cyull</span>。疯子。
+    </p>
+    <p style="opacity:0;animation:fadeIn 1.2s 7.6s forwards;">在这个世界里，拒绝一切的人，是疯子。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 8.6s forwards;margin-top:24px;">但疯子有一个好处。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 9.4s forwards;">疯子不受任何语言的约束。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 10.2s forwards;">你拒绝了我们的语言。你拒绝了你们的语言。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 11s forwards;">你拒绝了所有语言。</p>
+    <p style="opacity:0;animation:fadeIn 1.2s 11.8s forwards;margin-top:24px;">所以你可以走了。</p>
+  `;
+  spec.appendChild(mono);
+
+  // 等最后一句淡入后，显示输入框
+  setTimeout(() => {
+    renderMadmanInput();
+  }, 13000);
+}
+
+/* ---------- 疯子的输入 ---------- */
+function renderMadmanInput() {
+  const p = $("#puzzle");
+
+  p.innerHTML = `
+    <div class="hidden-note-input">
+      <div class="hidden-note-label">你 要 说 什 么 ？ 或 者 ， 什 么 都 不 说</div>
+      <textarea id="madmanNote" class="hidden-note-box" placeholder="（可以留空）"></textarea>
+      <div class="hidden-actions">
+        <button class="btn primary" id="madmanSubmit">离 开</button>
+      </div>
+    </div>
+  `;
+
+  const textarea = $("#madmanNote");
+  const btn = $("#madmanSubmit");
+
+  textarea.focus();
+
+  const submit = () => {
+    const text = textarea.value.trim();
+
+    // 如果玩家写了内容，存入笔记
+    if (text) {
+      saveNote(text, "疯子的自言自语");
+    }
+
+    textarea.disabled = true;
+    btn.disabled = true;
+
+    setTimeout(() => renderEnding0Madman(), 600);
+  };
+
+  btn.onclick = submit;
+}
+
+/* =========================================================
+   结局 0 · 疯子
+   ========================================================= */
+function renderEnding0Madman() {
+  const app = document.querySelector(".app");
+  app.innerHTML = `
+    <div class="ending-madman">
+      <h1>疯 子</h1>
+
+      <p>你关掉了收音机。</p>
+
+      <p style="margin-top:32px;">但你并没有感到恐惧。</p>
+      <p>你只是觉得，这个世界上的所有语言，都变得陌生了。</p>
+
+      <p style="margin-top:32px;">你不再听广播。</p>
+      <p>你不再写任何东西。</p>
+      <p>你不再和任何人说话。</p>
+
+      <p style="margin-top:32px;">不是因为你害怕。</p>
+      <p>是因为你已经不需要语言了。</p>
+
+      <p style="margin-top:32px;">你在沉默中度过余生。</p>
+      <p>没有人知道你为什么沉默。</p>
+      <p>没有人知道你曾经听过什么。</p>
+
+      <p class="final-line">你是一个疯子。</p>
+      <p class="final-line" style="margin-top:8px;">而疯子是自由的。</p>
+
+      <p class="ending-tag">结 局 零 / 三</p>
+
+      <button class="btn ghost" id="madmanRestart">重新开始</button>
+    </div>
+  `;
+
+  $("#madmanRestart").onclick = () => {
+    localStorage.removeItem("freq_save");
+    location.reload();
+  };
+}
+
+/* ---------- 对话关 ---------- */
+function renderDialogue(lv) {
+  // 首次进入本关时初始化
+  if (state.dialogueKey !== lv.key) {
+    state.dialogueKey = lv.key;
+    state.dialogueStage = 0;
+  }
+
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+  p.innerHTML = "";
+
+  if (state.dialogueStage === 0) return renderDialogueStage1(lv);
+  if (state.dialogueStage === 1) return renderDialogueStage2(lv);
+  if (state.dialogueStage === 2) return renderDialogueStage3(lv);
+}
+
+/* 阶段 1：对面说话 */
+function renderDialogueStage1(lv) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  // 频谱区显示对面说的那段话
+  const block = document.createElement("div");
+  block.className = "dialogue-block";
+
+  const linesHTML = lv.callerSpeechStyled
+    .map(line => `<div class="dialogue-text">${line}</div>`)
+    .join("");
+
+  block.innerHTML = `
+    <div class="dialogue-label">对 面 说</div>
+    ${linesHTML}
+    <div class="dialogue-note">你只能听懂几个词。但整段话的意思，就那么浮上来了。</div>
+  `;
+  spec.appendChild(block);
+
+  // 谜题区
+  p.innerHTML = `
+    <div class="question-row">
+      <div class="question-label">继续听下去。</div>
+      <div class="input-row">
+        <button class="btn primary" id="continueBtn">继续</button>
+      </div>
+    </div>
+  `;
+
+  $("#continueBtn").onclick = () => {
+    state.dialogueStage = 1;
+    renderDialogue(lv);
+  };
+}
+
+/* 阶段 2：对面提问，玩家自由回答 */
+function renderDialogueStage2(lv) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  // 保留上方对话
+  const block = document.createElement("div");
+  block.className = "dialogue-block";
+  const linesHTML = lv.callerSpeechStyled
+    .map(line => `<div class="dialogue-text">${line}</div>`)
+    .join("");
+  block.innerHTML = `
+    <div class="dialogue-label">对 面 说</div>
+    ${linesHTML}
+  `;
+  spec.appendChild(block);
+
+  // 提问
+  p.innerHTML = `
+    <div class="question-row">
+      <div class="question-label" style="font-size:17px;">
+        ${lv.questionStyled}
+      </div>
+      <div class="input-row" style="margin-top:14px;">
+        <input type="text" id="dialogueInput" placeholder="用魔鬼语或中文回答…" autocomplete="off" spellcheck="false" maxlength="80">
+        <button class="btn primary" id="dialogueBtn">回答</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  const input = $("#dialogueInput");
+  const btn = $("#dialogueBtn");
+
+  const submit = () => {
+    const v = input.value.trim();
+    if (!v) return;
+
+    input.disabled = true;
+    btn.disabled = true;
+
+    // 判定关键词
+    const matched = matchKeyword(v, lv.keywordOrder);
+
+    // 彩蛋：vai va zo
+    if (matched === "vai va zo") {
+      showCyullEasterEgg(() => {
+        state.dialogueStage = 2;
+        state.dialogueMatched = "vai va zo";
+        renderDialogue(lv);
+      });
+      return;
+    }
+
+    state.dialogueMatched = matched;
+    state.dialogueStage = 2;
+    renderDialogue(lv);
+  };
+
+  btn.onclick = submit;
+  input.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  input.focus();
+}
+
+/* 阶段 3：对面的回应 + 收尾 */
+function renderDialogueStage3(lv) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  const matched = state.dialogueMatched;
+
+  // 上方保留对话
+  const block = document.createElement("div");
+  block.className = "dialogue-block";
+  const linesHTML = lv.callerSpeechStyled
+    .map(line => `<div class="dialogue-text">${line}</div>`)
+    .join("");
+  block.innerHTML = `
+    <div class="dialogue-label">对 面 说</div>
+    ${linesHTML}
+  `;
+  spec.appendChild(block);
+
+  // 对面回应
+  const replyBlock = document.createElement("div");
+  replyBlock.className = "dialogue-block";
+  replyBlock.style.animationDelay = "0.3s";
+
+  let replyData;
+  if (matched && lv.keywordReplies[matched]) {
+    replyData = lv.keywordReplies[matched];
+  } else {
+    replyData = lv.defaultReply;
+  }
+
+  replyBlock.innerHTML = `
+    <div class="dialogue-label">回 应</div>
+    <div class="dialogue-text" style="color:#e8c876;font-size:17px;">${replyData.reply}</div>
+    ${replyData.note ? `<div class="dialogue-note">${replyData.note}</div>` : ""}
+    ${replyData.after ? `<div class="dialogue-text" style="margin-top:14px;color:#7ac8e8;">${replyData.after}</div>` : ""}
+  `;
+  spec.appendChild(replyBlock);
+
+  // 收尾
+  const farewellBlock = document.createElement("div");
+  farewellBlock.className = "dialogue-block";
+  farewellBlock.style.animationDelay = "0.6s";
+  farewellBlock.innerHTML = `
+    <div class="dialogue-label">最 后 一 句</div>
+    <div class="dialogue-text" style="color:#a8d0f0;">${lv.farewellStyled}</div>
+  `;
+  spec.appendChild(farewellBlock);
+
+  // 谜题区
+  p.innerHTML = `
+    <div class="question-row">
+      <div class="question-label">信号即将跳转。</div>
+      <div class="input-row">
+        <button class="btn primary" id="finishBtn">继续</button>
+      </div>
+    </div>
+  `;
+
+  $("#finishBtn").onclick = () => {
+    finishLevel(lv);
+  };
+}
+
+/* ---------- 关键词匹配 ---------- */
+function matchKeyword(text, order) {
+  const t = text.toLowerCase();
+  for (const k of order) {
+    const kLower = k.toLowerCase();
+    if (kLower === "vai va zo") {
+      // 塞拉语短语，检查是否包含 vai、va、zo 三词（任意顺序、任意分隔）
+      const parts = t.replace(/[\s,，。.!！?？]/g, " ").split(/\s+/);
+      if (parts.includes("vai") && parts.includes("va") && parts.includes("zo")) {
+        return k;
+      }
+      if (t.includes("vaivazo") || t.includes("vai va zo")) return k;
+    } else if (kLower === "sela") {
+      if (t.includes("sela")) return k;
+    } else {
+      if (t.includes(kLower)) return k;
+    }
+  }
+  return null;
+}
+
+/* ---------- 疯子彩蛋 ---------- */
+function showCyullEasterEgg(cb) {
+  // 先把 cyull 加入词根本
+  if (!state.roots.includes("cyull")) {
+    state.roots.push("cyull");
+    save();
+    renderLexicon();
+  }
+
+  const overlay = document.createElement("div");
+  overlay.className = "cyull-overlay";
+  overlay.innerHTML = `
+    <div class="cyull-box">
+      <div class="cyull-word">Cyull!</div>
+      <div class="cyull-cn">疯 子</div>
+      <div class="cyull-sub">你听懂了。</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  setTimeout(() => {
+    overlay.style.transition = "opacity 0.6s";
+    overlay.style.opacity = "0";
+    setTimeout(() => {
+      overlay.remove();
+      cb();
+    }, 600);
+  }, 2600);
+}
+
+/* =========================================================
+   书写关
+   ========================================================= */
+function renderEssay(lv) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+  p.innerHTML = "";
+
+  // 话题词栏
+  const topicsBox = document.createElement("div");
+  topicsBox.className = "essay-topics";
+  topicsBox.innerHTML = `<span class="essay-topics-label">话 题</span>` +
+    lv.topics.map(t => `
+      <span class="topic-chip" data-word="${t.word}">
+        ${t.word}<span class="topic-cn">${t.cn}</span>
+      </span>
+    `).join("");
+  spec.appendChild(topicsBox);
+
+  // 书写区
+  p.innerHTML = `
+    <div class="question-row">
+      <div class="question-label">${lv.question}</div>
+      <textarea id="essayInput" class="essay-box" placeholder="${lv.placeholder || "写点什么…"}"></textarea>
+      <div class="essay-status">
+        <span class="essay-count" id="essayCount">0 字</span>
+        <span id="topicStatus">0 / ${lv.topics.length} 话题词</span>
+      </div>
+      <div class="input-row" style="margin-top:16px;">
+        <button class="btn primary" id="essaySubmit">交 出</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  const textarea = $("#essayInput");
+  const countEl = $("#essayCount");
+  const statusEl = $("#topicStatus");
+  const submitBtn = $("#essaySubmit");
+
+  const updateUI = () => {
+    const text = textarea.value;
+    countEl.textContent = text.length + " 字";
+
+    let used = 0;
+    lv.topics.forEach(t => {
+      const chip = topicsBox.querySelector(`[data-word="${t.word}"]`);
+      if (text.toLowerCase().includes(t.word.toLowerCase())) {
+        chip.classList.add("used");
+        used++;
+      } else {
+        chip.classList.remove("used");
+      }
+    });
+
+    statusEl.textContent = `${used} / ${lv.topics.length} 话题词`;
+    const allUsed = used === lv.topics.length;
+    const longEnough = text.length >= (lv.minLength || 20);
+    countEl.className = "essay-count" + (allUsed && longEnough ? " ready" : "");
+  };
+
+  textarea.addEventListener("input", updateUI);
+  textarea.focus();
+  updateUI();
+
+  const submit = () => {
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    // 检查长度
+    if (text.length < (lv.minLength || 20)) {
+      $("#feedback").className = "feedback";
+      $("#feedback").textContent = `再写长一点。至少 ${lv.minLength || 20} 字。`;
+      textarea.classList.add("shake");
+      setTimeout(() => textarea.classList.remove("shake"), 400);
+      return;
+    }
+
+    // 检查话题词
+    const missing = lv.topics.filter(t => !text.toLowerCase().includes(t.word.toLowerCase()));
+    if (missing.length > 0) {
+      $("#feedback").className = "feedback";
+      $("#feedback").textContent = `还没有写到：${missing.map(m => m.word).join("、")}`;
+      textarea.classList.add("shake");
+      setTimeout(() => textarea.classList.remove("shake"), 400);
+      return;
+    }
+
+    // 保存笔记
+    saveNote(text);
+
+    state.essayText = text;
+    $("#feedback").className = "feedback good";
+    $("#feedback").textContent = "已记入笔记。";
+
+    textarea.disabled = true;
+    submitBtn.disabled = true;
+
+    setTimeout(() => finishLevel(lv), 800);
+  };
+
+  submitBtn.onclick = submit;
+}
+
+/* =========================================================
+   笔记存储
+   ========================================================= */
+function saveNote(text, tag) {
+  try {
+    const raw = localStorage.getItem("freq_notes");
+    const notes = raw ? JSON.parse(raw) : [];
+    const now = new Date();
+    const pad = n => String(n).padStart(2, "0");
+    const time = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    notes.push({ time, text, tag: tag || "" });
+    localStorage.setItem("freq_notes", JSON.stringify(notes));
+  } catch (e) {}
+}
+
+function loadNotes() {
+  try {
+    const raw = localStorage.getItem("freq_notes");
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+/* =========================================================
+   笔记面板
+   ========================================================= */
+function showNotes() {
+  const notes = loadNotes();
+
+  const overlay = document.createElement("div");
+  overlay.className = "notes-overlay";
+
+  const notesHTML = notes.length === 0
+    ? `<div class="notes-empty">还没有写下任何东西。</div>`
+    : notes.map(n => `
+     <div class="note-item">
+       <div class="note-time">${n.time}${n.tag ? ` · ${n.tag}` : ""}</div>
+       <div class="note-body">${highlightRoots(n.text)}</div>
+     </div>
+    `).join("");
+
+  overlay.innerHTML = `
+    <div class="notes-panel">
+      <div class="notes-title">笔 记</div>
+      <div class="notes-list">${notesHTML}</div>
+      <div class="notes-close">
+        <button class="btn ghost" id="notesClose" style="margin-top:0;">关 闭</button>
+      </div>
+    </div>
+  `;
+
+  overlay.querySelector("#notesClose").onclick = () => overlay.remove();
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  document.body.appendChild(overlay);
+}
+
+/* 在笔记正文里高亮已学的词根 */
+function highlightRoots(text) {
+  if (!text) return "";
+  // 转义 HTML
+  let safe = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // 按长度倒序，避免短词抢先替换
+  const roots = state.roots.slice().sort((a, b) => b.length - a.length);
+  roots.forEach(r => {
+    if (!r || r.length < 2) return;
+    const re = new RegExp(`(${r})(?![a-zA-Z])`, "gi");
+    safe = safe.replace(re, `<span class="dc-root">$1</span>`);
+  });
+  return safe;
+}
+/* =========================================================
+   诱惑关
+   ========================================================= */
+function renderTemptation(lv) {
+  // 首次进入本关时初始化
+  if (state.temptationKey !== lv.key) {
+    state.temptationKey = lv.key;
+    state.temptationStage = 0;
+  }
+
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+  p.innerHTML = "";
+
+  if (state.temptationStage === 0) return renderTemptationChoice(lv, false);
+  if (state.temptationStage === 1) return renderTemptationMemory(lv);
+  if (state.temptationStage === 2) return renderTemptationChoice(lv, true);
+}
+
+/* 显示对面的独白 + 唯一的选项 */
+function renderTemptationChoice(lv, isSecondTime) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  // 独白
+  const block = document.createElement("div");
+  block.className = "monologue-block";
+  block.innerHTML = `
+    <div class="dialogue-label">对 面 说</div>
+    ${lv.monologue.map(line => `<div class="monologue-line">${line}</div>`).join("")}
+  `;
+  spec.appendChild(block);
+
+  // 唯一选项
+  p.innerHTML = `
+    <div class="temptation-choice">
+      <button class="temptation-btn" id="temptBtn">${lv.choiceText}</button>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  `;
+
+  const btn = $("#temptBtn");
+
+  btn.onclick = () => {
+    // 如果玩家没有 player_words，直接跳过记忆检查进入下一关
+    const playerWords = localStorage.getItem("player_words");
+    if (!playerWords) {
+      state.temptationStage = 2;
+      finishLevel(lv);
+      return;
+    }
+
+    // 第二次点击：直接进入下一关
+    if (isSecondTime) {
+      finishLevel(lv);
+      return;
+    }
+
+    // 第一次点击：进入记忆检查
+    state.temptationStage = 1;
+    renderTemptation(lv);
+  };
+}
+
+/* 记忆检查 */
+function renderTemptationMemory(lv) {
+  const overlay = document.createElement("div");
+  overlay.className = "memory-overlay";
+
+  overlay.innerHTML = `
+    <div class="memory-box">
+      <div class="memory-prompt">${lv.memoryPrompt}</div>
+      <div class="memory-input-row">
+        <input type="text" id="memoryInput" class="memory-input" placeholder="输入你的回答…" autocomplete="off" spellcheck="false" maxlength="80">
+      </div>
+      <button class="memory-submit" id="memorySubmit">确 认</button>
+      <div class="memory-feedback" id="memoryFeedback"></div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const input = overlay.querySelector("#memoryInput");
+  const submitBtn = overlay.querySelector("#memorySubmit");
+  const fb = overlay.querySelector("#memoryFeedback");
+
+  const check = () => {
+    const v = input.value.trim();
+    const playerWords = localStorage.getItem("player_words") || "";
+
+    // 归一化比较：忽略大小写、空格、标点
+    const normFn = s => (s || "")
+      .replace(/[\s，。！？、,.!?；;：:"'“”‘’（）()《》「」『』…—\-]/g, "")
+      .toLowerCase();
+
+    const userNorm = normFn(v);
+    const targetNorm = normFn(playerWords);
+
+    // 留空 = 放弃
+    if (!userNorm) {
+      overlay.remove();
+      state.temptationStage = 2;
+      renderTemptation(lv);
+      return;
+    }
+
+    if (userNorm === targetNorm) {
+      // 正确：进入结局 1
+      fb.style.color = "#6fbf73";
+      fb.textContent = "你想起来了。";
+      input.disabled = true;
+      submitBtn.disabled = true;
+      setTimeout(() => {
+        overlay.remove();
+        renderEnding1Return();
+      }, 1800);
+    } else {
+      // 错误：回到选择界面
+      fb.textContent = "不是这个。";
+      input.classList.add("shake");
+      setTimeout(() => input.classList.remove("shake"), 400);
+      setTimeout(() => {
+        overlay.remove();
+        state.temptationStage = 2;
+        renderTemptation(lv);
+      }, 1600);
+    }
+  };
+
+  submitBtn.onclick = check;
+  input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  setTimeout(() => input.focus(), 2200);
+}
+
+/* =========================================================
+   结局 1 · 回归自我
+   ========================================================= */
+function renderEnding1Return() {
+  const app = document.querySelector(".app");
+  app.innerHTML = `
+    <div class="ending-return">
+      <h1>回 归 自 我</h1>
+
+      <p>你按下了收音机的关机键。</p>
+      <p>那个声音消失了。</p>
+
+      <p style="margin-top:40px;">你没有答应它。</p>
+      <p>你也没有拒绝它。</p>
+      <p>你只是记得，你自己说过什么。</p>
+
+      <p style="margin-top:40px;">你没有再听过那个频率。</p>
+      <p>你不再在凌晨两点十七分醒来。</p>
+
+      <p style="margin-top:40px;">你过上了普通的生活。</p>
+      <p>你不听电台广播了。</p>
+
+      <p class="ending-tag">结 局 一 / ？</p>
+
+      <button class="btn ghost" id="returnRestart">重新开始</button>
+    </div>
+  `;
+
+  $("#returnRestart").onclick = () => {
+    localStorage.removeItem("freq_save");
+    location.reload();
+  };
+}
+
+/* =========================================================
+   终局关
+   ========================================================= */
+function renderFinale(lv) {
+  if (state.finaleKey !== lv.key) {
+    state.finaleKey = lv.key;
+    state.finaleStage = 0;
+  }
+
+  if (state.finaleStage === 0) return renderFinaleScene(lv, false);
+  if (state.finaleStage === 1) return renderFinaleScene(lv, true);
+}
+
+function renderFinaleScene(lv, secondTime) {
+  const spec = $("#spectrum");
+  const p = $("#puzzle");
+
+  spec.innerHTML = "";
+  spec.classList.remove("compare-mode");
+  p.innerHTML = "";
+
+  // 显示玩家笔记
+  const notes = loadNotes();
+  const latestNote = notes.length > 0 ? notes[notes.length - 1].text : "（你没有写下任何东西。）";
+
+  const noteBlock = document.createElement("div");
+  noteBlock.className = "finale-note-display";
+  noteBlock.innerHTML = `
+    <div class="finale-note-label">你 写 下 的</div>
+    <div class="finale-note-body">${highlightRoots(latestNote)}</div>
+  `;
+  spec.appendChild(noteBlock);
+
+  // 对面说话
+  const monoBlock = document.createElement("div");
+  monoBlock.className = "monologue-block";
+  monoBlock.style.animationDelay = "0.4s";
+  monoBlock.innerHTML = `
+    <div class="dialogue-label">对 面 说</div>
+    ${lv.monologue.map(line => `<div class="monologue-line">${line}</div>`).join("")}
+  `;
+  spec.appendChild(monoBlock);
+
+  // 两个选择
+  p.innerHTML = `
+    <div class="finale-choice">
+      <button class="finale-choice-btn" id="writeBtn">${lv.choiceTexts.write}</button>
+      <button class="finale-choice-btn danger" id="refuseBtn">${lv.choiceTexts.refuse}</button>
+    </div>
+  `;
+
+  $("#writeBtn").onclick = () => {
+    renderEnding2Accomplice();
+  };
+
+  $("#refuseBtn").onclick = () => {
+    renderEnding3Peace();
+  };
+}
+
+/* =========================================================
+   结局 2 · 帮凶
+   ========================================================= */
+function renderEnding2Accomplice() {
+  const app = document.querySelector(".app");
+  app.innerHTML = `
+    <div class="ending-accomplice">
+      <h1>帮 凶</h1>
+
+      <p>你写下去了。</p>
+      <p>第一个词，是 <span class="sela" style="color:#e8c876;">shen</span>。人。</p>
+      <p>然后是第二个，第三个。</p>
+      <p>你为它们编了一部辞典。</p>
+
+      <p style="margin-top:36px;">一部魔鬼语和人类语的双向辞典。</p>
+      <p>一部让它们能潜伏在人群中的辞典。</p>
+
+      <p style="margin-top:36px;">它们不再需要广播了。</p>
+      <p>它们可以直接开口说话。</p>
+      <p>用你的语言，用你教它们的词。</p>
+
+      <p style="margin-top:36px;">你把辞典交出去的时候，对面沉默了一下。</p>
+      <p>然后它说了一句你早已学会的话。</p>
+      <p style="font-family:'Courier New',monospace;font-size:16px;color:#e8c876;letter-spacing:0.2em;margin-top:20px;">
+        hyph-ae-esh dun gat-um mor-or
+      </p>
+      <p style="font-size:13px;color:#6d5545;font-style:italic;">我们给予你死亡。</p>
+
+      <p style="margin-top:40px;">那么，你还有几日可活呢？</p>
+
+      <p class="ending-tag">结 局 二 / 三</p>
+
+      <button class="btn ghost" id="accompliceRestart">重新开始</button>
+    </div>
+  `;
+
+  $("#accompliceRestart").onclick = () => {
+    localStorage.removeItem("freq_save");
+    location.reload();
+  };
+}
+
+/* =========================================================
+   结局 3 · 安定生活？
+   ========================================================= */
+function renderEnding3Peace() {
+  const app = document.querySelector(".app");
+  app.innerHTML = `
+    <div class="ending-peace">
+      <h1>安 定 生 活 ？</h1>
+
+      <p>你没有写。</p>
+      <p>你按下了关机键。</p>
+
+      <p style="margin-top:36px;">那一夜你在恐惧中睡去。</p>
+      <p>第二天，你把收音机扔了。</p>
+      <p>你换了个城市，换了份工作。</p>
+      <p>你去看了心理医生。</p>
+
+      <p style="margin-top:36px;">医生说，这是压力过大导致的幻听。</p>
+      <p>你信了。你开始按时吃药，按时睡觉。</p>
+      <p>三个月后，你真的觉得自己好了。</p>
+
+      <p style="margin-top:36px;">你甚至在某个周末，重新打开了一台新的收音机。</p>
+      <p>只是想听听音乐。仅此而已。</p>
+
+      <p style="margin-top:36px;">你最后一次去见心理医生。</p>
+      <p>他微笑着说，你可以停药了。</p>
+      <p>你站起身，准备离开。</p>
+
+      <p style="margin-top:36px;">然后你听见他在你身后，轻轻地，说了一句话。</p>
+
+      <div class="doctor-line">hyph-ae-esh vor-ka gat-or</div>
+      <div class="doctor-cn">我们正在看着你</div>
+
+      <p class="ending-tag">结 局 三 / 三</p>
+
+      <button class="btn ghost" id="peaceRestart">重新开始</button>
+    </div>
+  `;
+
+  $("#peaceRestart").onclick = () => {
+    localStorage.removeItem("freq_save");
+    location.reload();
+  };
+}
+
+/* =========================================================
+   过关
+   ========================================================= */
+function finishLevel(lv) {
+  if (lv.learned) {
+    const items = Array.isArray(lv.learned) ? lv.learned : [lv.learned];
+    items.forEach(item => {
+      if (item.type === "root" && !state.roots.includes(item.word)) {
+        state.roots.push(item.word);
+      }
+      if (item.type === "suffix" && !state.suffixes.includes(item.word)) {
+        state.suffixes.push(item.word);
+      }
+    });
+  }
+
+  state.level++;
+  save();
+  
+  showReveal(lv.reveal || "信号中断。", () => {
+    if (state.level >= state.levels.length) renderEnding();
+    else render();
+  });
+}
+
+function showReveal(text, cb) {
+  const overlay = document.createElement("div");
+  overlay.className = "overlay";
+  overlay.innerHTML = `
+    <div class="reveal-box">
+      <p>${text}</p>
+      <button class="btn primary">继续</button>
+    </div>
+  `;
+  overlay.querySelector("button").onclick = () => {
+    overlay.remove();
+    cb();
+  };
+  document.body.appendChild(overlay);
+}
+
+/* =========================================================
+   结束（暂时占位）
+   ========================================================= */
+function renderEnding() {
+  const app = document.querySelector(".app");
+  app.innerHTML = `
+    <div class="ending">
+      <h1>信 号 中 断</h1>
+      <p>你听完了这一段。</p>
+      <p>频道重新归于噪音。</p>
+      <p style="margin-top:40px;font-size:13px;color:#6d5545;">（后续关卡待添加）</p>
+      <button class="btn primary" id="endRestart" style="margin-top:40px;">重新开始</button>
+    </div>
+  `;
+  $("#endRestart").onclick = () => {
+    localStorage.removeItem("freq_save");
+    location.reload();
+  };
+}
+
+/* =========================================================
+   重开
+   ========================================================= */
+function restartGame() {
+  const overlay = document.createElement("div");
+  overlay.className = "confirm-overlay";
+  overlay.innerHTML = `
+    <div class="confirm-box">
+      <p>确定要重新开始吗？<br>当前的进度会被清空。</p>
+      <div class="confirm-actions">
+        <button class="btn" id="cancelRestart" style="background:transparent;border:1px solid #3a2020;color:#8a7f6e;">取消</button>
+        <button class="btn primary" id="confirmRestart">重开</button>
+      </div>
+    </div>
+  `;
+  overlay.querySelector("#cancelRestart").onclick = () => overlay.remove();
+  overlay.querySelector("#confirmRestart").onclick = () => {
+    localStorage.removeItem("freq_save");
+    location.reload();
+  };
+  document.body.appendChild(overlay);
+}
+
+document.addEventListener("click", e => {
+  if (e.target && e.target.id === "restartBtn") restartGame();
+  if (e.target && e.target.id === "notesBtn") showNotes();
+});
+
+/* =========================================================
+   开发者模式
+   ---------------------------------------------------------
+   ?dev=reset      清空存档
+   ?dev=stage&n=2  跳到第 2 关（按索引，0 起算）
+   ========================================================= */
+function devMode() {
+  const params = new URLSearchParams(location.search);
+  const dev = params.get("dev");
+  if (!dev) return;
+
+  if (dev === "reset") {
+    localStorage.removeItem("freq_save");
+    console.log("%c[DEV]", "color:#c84444;font-weight:bold;", "存档已清空");
+  }
+  if (dev === "stage") {
+    const n = parseInt(params.get("n") || "0", 10);
+    try {
+      localStorage.setItem("freq_save", JSON.stringify({
+        level: n,
+        roots: [],
+        suffixes: []
+      }));
+      console.log("%c[DEV]", "color:#c84444;font-weight:bold;", "跳到第 " + n + " 关");
+    } catch (e) {}
+  }
+}
+
+/* =========================================================
+   启动
+   ========================================================= */
+devMode();
+load();
+render();
+</script>
+</body>
+</html>
